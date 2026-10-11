@@ -6,72 +6,92 @@ schema and testing docs created.
 
 ## Phase 2 — Next.js app + layout + nav ✅ COMPLETE
 Next.js 16.4.0 App Router + Tailwind v4. Shared layout, responsive nav,
-landing page, tools index, robots.txt, 404. Lint/typecheck/tests/build all green.
+landing page, tools index, robots.txt, 404. Lint/typecheck/tests/build green.
 
 ## Phase 3 — Supabase, migrations, RLS, auth ✅ COMPLETE
+10 migrations applied. RLS on all tables, least-privilege grants, guard
+triggers, storage, auth, admin shell. Two real vulnerabilities found and fixed
+(over-broad Supabase default grants; author self-publish via snapshot-evaluated
+`SECURITY DEFINER` helper).
+
+## Phase 4 — The five security utilities ✅ COMPLETE
 
 **Completed**
-- 10 checked-in SQL migrations applied to the live Supabase project.
-- 11 tables with UUID keys, FKs, indexes, constraints, `updated_at` triggers.
-- RLS enabled on every table; explicit policies per role.
-- Least-privilege grants (Supabase's permissive default ACL revoked).
-- Profile auto-provisioning on signup, defaulting every user to `author`.
-- Guard triggers preventing role escalation, authorship reassignment and
-  author-led publishing.
-- Storage buckets (`media` public, `media-private`) with object-level policies.
-- Supabase clients: browser, server (SSR cookies), and `server-only` service-role.
-- `proxy.ts` (Next 16 replacement for `middleware.ts`) refreshing sessions and
-  gating `/admin`.
-- Sign-in, sign-out, password reset, password update, OAuth callback,
-  forgot-password, 403 page.
-- Role helpers (`requireRole`, `assertRole`, `roleAtLeast`) resolving roles from
-  the database, never from the client.
-- Verification tooling: `verify-rls.mjs`, `verify-auth.mjs`, `smoke-http.mjs`,
-  `migrate.mjs`, `set-role.mjs`, `create-test-admin.mjs`, `cleanup-test-users.mjs`.
-- Admin dashboard shell with role-aware sections.
+- `src/lib/crypto/random.ts` — unbiased `randomInt` via rejection sampling,
+  CSPRNG Fisher–Yates shuffle, `randomChoice`. No `Math.random` anywhere.
+- `src/lib/crypto/password.ts` — character sets, ambiguous filtering,
+  group-coverage guarantee, impossible-config rejection, random-string generator.
+- `src/lib/crypto/passphrase.ts` — uniform word selection, separators,
+  capitalisation, number/symbol options, duplicate-free mode, offline-cracking
+  time formatting.
+- `src/lib/crypto/wordlist.ts` — EFF Large Wordlist (7,776 words) bundled with
+  full CC BY 3.0 attribution; regenerable via `scripts/build-wordlist.mjs`.
+- `src/lib/entropy/calculator.ts` — pool sizing, `H = L·log₂(N)`, pattern
+  detection (repeats, sequences, keyboard walks, years, repeated chunks),
+  strength banding with explicit caveats.
+- `src/lib/strength/analyse.ts` — zxcvbn via the maintained `@zxcvbn-ts` port.
+- Five tool pages with copy / regenerate / show-hide / validation, accessible
+  labelling, and per-tool explanatory copy.
 
-**Migrations created**
-`0001_extensions_and_enums` · `0002_core_tables` · `0003_rls_and_policies` ·
-`0004_profile_provisioning` · `0005_storage` · `0006_harden_grants` ·
-`0007_bootstrap_admin` · `0008_fix_privilege_guard_for_service_role` ·
-`0009_deterministic_privilege_guard` · `0010_fix_author_self_publish`
+**Key design decision**
+Generation happens inside a client-side effect (`useClientSecret`), never during
+render. Next 16 refuses to prerender a Client Component that touches
+`crypto.getRandomValues()`, and it is right to: a secret must never exist in
+server-rendered HTML or the RSC payload.
+
+**Files created**
+`src/lib/crypto/{random,password,passphrase,wordlist}.ts` + 4 test files,
+`src/lib/entropy/calculator.ts` + test,
+`src/lib/strength/analyse.ts` + test,
+`src/lib/hooks/{use-copy,use-client-secret}.ts`,
+`src/components/tools/{controls,buttons,password-generator,passphrase-generator,
+password-strength-checker,entropy-calculator,random-string-generator}.tsx`,
+`src/app/{password-generator,passphrase-generator,password-strength-checker,
+password-entropy-calculator,random-string-generator}/page.tsx`,
+`scripts/{build-wordlist,verify-tools}.mjs`
+
+**Migrations:** none this phase
 
 **Verification (all executed)**
 | Gate | Result |
 |---|---|
-| `npm run lint` | pass (0 errors, 0 warnings) |
+| `npm run lint` | pass, 0 errors/warnings |
 | `npm run typecheck` | pass |
-| `npm test` | 28/28 pass |
-| `npm run build` | pass |
-| `scripts/verify-rls.mjs` | **56/56 pass** |
-| `scripts/verify-auth.mjs` | **39/39 pass** (real users, real JWTs, live RLS) |
-| `scripts/smoke-http.mjs` | **16/16 pass** (incl. real sign-in + admin render) |
+| `npm test` | **131/131** (run 8× consecutively for flake checking) |
+| `npm run build` | pass, 17 routes |
+| `scripts/verify-tools.mjs` (Playwright/Chromium) | **30/30** |
+| Client-bundle secret scan | clean (only React-internal `Math.random`) |
 
-**Security findings — two real issues found and fixed**
+**Browser-verified privacy guarantees** — all pass:
+- No same-origin API requests while generating
+- No request bodies contain a secret
+- Nothing written to `localStorage`
+- Nothing written to `sessionStorage`
+- No cookie holds a generated secret
+- Server HTML contains no user input
 
-1. **Over-broad grants (high).** Supabase's default ACL on the `public` schema
-   grants `ALL` to `anon` and `authenticated` for every new table. Migration
-   0003 only added grants. RLS still blocked access, so this was not directly
-   exploitable, but it left `TRUNCATE` and friends reachable and removed
-   defence-in-depth. Fixed in `0006_harden_grants.sql`.
+**Statistical testing**
+Uniformity is tested, not assumed: chi-squared over 80,000 draws, 8-bucket
+distribution checks for word selection, and permutation-distribution checks for
+the shuffle. Bands were widened after one flaky run so they are ~4–5 sigma —
+tight enough to catch real bias, loose enough not to flake.
 
-2. **Author self-publish (high).** `articles_update_authorized` used the
-   `SECURITY DEFINER` helper `can_edit_article()` in its `WITH CHECK`. Postgres
-   evaluates that helper's inner `SELECT` under the pre-update snapshot, so it
-   observed the old `draft` status and permitted an author to set
-   `status = 'published'` — bypassing editorial review entirely. Confirmed live,
-   then fixed in `0010_fix_author_self_publish.sql` using direct column
-   references plus two guard triggers.
+**Issues found and fixed during this phase**
+- `describeOfflineGuessing` had a mis-mapped unit table (45 bits reported as
+  "29 seconds" instead of "29 minutes"). Caught by a test.
+- zxcvbn scores `password` as 2 / ~27 bits, not 0–1. This is inherent to the
+  algorithm's guessing-cost model; the behaviour is now documented in a test so
+  a future library change is noticed, and the UI shows bits alongside the score.
+- My own test assumptions were wrong four times (pool size 86 not 94; entropy
+  thresholds). Each was corrected against measured ground truth rather than
+  adjusted to pass.
 
-Also fixed: open-redirect hole in the login `next` parameter (caught by a test),
-and missing `no-store` on the admin redirect response.
-
-**Known limitations**
-- Playwright is installed but no e2e suite exists yet (Phase 8).
-- Service-role and database credentials were supplied in chat and **must be
-  rotated** before production.
-- Admin sections beyond the dashboard are placeholders (Phase 5).
+**Open risks**
+- Playwright browsers installed locally; CI still needs `playwright install`.
+- Word list is bundled at ~100 KB raw (gzip well below that). Acceptable now,
+  revisit if the bundle budget tightens.
+- zxcvbn dictionaries add to client JS; lazy-loading is a Phase 8 option.
 
 ---
 
-## Phase 4 — The five security utilities ⬜ NEXT
+## Phase 5 — Administration panel & article workflow ⬜ NEXT
