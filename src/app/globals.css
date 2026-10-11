@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand palette — overridable from admin settings in a later phase. */
+  --color-background: oklch(99% 0.002 260);
+  --color-foreground: oklch(21% 0.02 260);
+
+  --color-primary: oklch(52% 0.16 262);
+  --color-primary-foreground: oklch(99% 0.002 260);
+
+  --color-secondary: oklch(96% 0.005 260);
+  --color-secondary-foreground: oklch(28% 0.02 260);
+
+  --color-muted: oklch(96% 0.005 260);
+  --color-muted-foreground: oklch(50% 0.015 260);
+
+  --color-accent: oklch(70% 0.14 165);
+  --color-accent-foreground: oklch(18% 0.02 165);
+
+  --color-border: oklch(90% 0.006 260);
+  --color-ring: oklch(52% 0.16 262);
+
+  --color-success: oklch(62% 0.15 150);
+  --color-warning: oklch(74% 0.15 80);
+  --color-danger: oklch(58% 0.19 25);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --radius-card: 0.875rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: oklch(17% 0.015 260);
+    --color-foreground: oklch(96% 0.005 260);
+
+    --color-primary: oklch(70% 0.14 262);
+    --color-primary-foreground: oklch(17% 0.015 260);
+
+    --color-secondary: oklch(24% 0.02 260);
+    --color-secondary-foreground: oklch(95% 0.005 260);
+
+    --color-muted: oklch(24% 0.02 260);
+    --color-muted-foreground: oklch(72% 0.015 260);
+
+    --color-accent: oklch(72% 0.14 165);
+    --color-accent-foreground: oklch(17% 0.015 165);
+
+    --color-border: oklch(30% 0.02 260);
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    font-family: var(--font-sans), system-ui, sans-serif;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+
+  /* Respect users who prefer reduced motion. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .container-page {
+    margin-inline: auto;
+    width: 100%;
+    max-width: 72rem;
+    padding-inline: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .container-page {
+      padding-inline: 1.5rem;
+    }
+  }
+
+  .prose-guides {
+    line-height: 1.75;
+  }
+
+  .prose-guides h2 {
+    margin-top: 2.25rem;
+    margin-bottom: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .prose-guides h3 {
+    margin-top: 1.75rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .prose-guides p {
+    margin-block: 1rem;
+  }
+
+  .prose-guides ul,
+  .prose-guides ol {
+    margin-block: 1rem;
+    padding-inline-start: 1.5rem;
+  }
+
+  .prose-guides ul {
+    list-style: disc;
+  }
+
+  .prose-guides ol {
+    list-style: decimal;
+  }
+
+  .prose-guides a {
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .prose-guides code {
+    border-radius: 0.25rem;
+    background-color: var(--color-muted);
+    padding: 0.125rem 0.35rem;
+    font-family: var(--font-mono), monospace;
+    font-size: 0.9em;
+  }
+}
