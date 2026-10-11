@@ -103,6 +103,25 @@ async function signIn(email) {
 async function main() {
   console.log("Creating test users...\n");
 
+  // PRECONDITION: the bootstrap path only works when no administrator exists.
+  // If a previous run crashed, or a persistent local admin account is present,
+  // creating the fixture admin is (correctly) refused.
+  const { data: existingAdmins } = await admin
+    .from("profiles")
+    .select("id, email")
+    .eq("role", "admin");
+
+  if ((existingAdmins ?? []).length > 0) {
+    console.error(
+      `Refusing to run: ${existingAdmins.length} administrator account(s) already exist:\n` +
+        existingAdmins.map((a) => `  - ${a.email}`).join("\n") +
+        "\n\nThe first-admin bootstrap is deliberately blocked once an admin exists.\n" +
+        "Delete these accounts, then re-run:\n" +
+        "  node --env-file=.env.local scripts/cleanup-test-users.mjs\n",
+    );
+    process.exit(1);
+  }
+
   const ids = {};
   for (const [role, email] of Object.entries(USERS)) {
     ids[role] = await createUser(email, role);
