@@ -1,0 +1,524 @@
+# MASTER DEVELOPMENT PROMPT
+## SecurePass Tools — Vercel + Supabase + Next.js
+
+### PROJECT GOAL
+
+Build a complete, original, privacy-first password-security tools website with a custom content-management administration panel.
+
+Working brand: SecurePass Tools. This is a provisional name; check domain availability and trademarks before launch.
+
+Deployment: Vercel.
+
+Framework: Next.js with TypeScript.
+
+Database: Supabase PostgreSQL.
+
+Authentication: Supabase Auth.
+
+Styling: Tailwind CSS or a consistent accessible component system.
+
+The website must provide multiple working password-security utilities, original educational content, technical SEO, appropriate privacy and consent controls, and preparation for Google AdSense review.
+
+Do not copy another website's source code, text, logo or protected assets.
+
+Do not claim that AdSense approval is guaranteed.
+
+### 1. REQUIRED TECHNICAL STACK
+
+Use:
+- Next.js App Router and TypeScript.
+- A currently supported Next.js release.
+- React Server Components by default, with Client Components only when interactivity is needed.
+- Vercel for hosting, deployments and CDN delivery.
+- Supabase PostgreSQL for persistent data.
+- Supabase Auth for administrator authentication.
+- Supabase SSR integration for secure cookie-based sessions.
+- PostgreSQL Row Level Security for database access control.
+- Supabase Storage only where media storage is required.
+- Tailwind CSS or another consistent accessible styling solution.
+- Zod or equivalent validation for appropriate untrusted input.
+- Vitest/Jest and browser tests as appropriate.
+
+Use current official documentation when implementing framework-specific APIs.
+
+Do not introduce Laravel, MySQL, a separate PHP backend or unnecessary server infrastructure.
+
+### 2. MANDATORY CODING RULES
+
+Before coding:
+- Inspect the repository and existing project configuration.
+- Read AGENTS.md and any project-specific instructions.
+- Check Node.js, package manager and dependency compatibility.
+- Identify existing features before changing files.
+- Prepare the architecture, route map, database schema and testing plan.
+- Do not delete files, database content, tables or user data without explicit permission.
+- Do not reset or wipe a Supabase database without explicit permission.
+- Never overwrite environment files or credentials blindly.
+- Never commit secrets.
+- Do not install unnecessary dependencies.
+- Work in small, testable phases.
+- Run linting, type checks and relevant tests after each phase.
+- Report changed files, test results, blockers and unresolved risks.
+- Do not claim an implementation is complete unless it has been verified.
+
+Create project instructions that preserve these requirements.
+
+### 3. REPOSITORY AND DEPLOYMENT
+
+Prepare the project for:
+- Local development.
+- Git version control.
+- Vercel preview deployments.
+- Vercel production deployments.
+- Separate development and production Supabase environments where practical.
+
+Use environment variables for configuration.
+
+Document:
+- Local setup.
+- Supabase project creation.
+- Database migrations.
+- Authentication URL configuration.
+- Vercel environment variables.
+- Preview and production deployment.
+- Domain configuration.
+- Backup and recovery procedures.
+
+Never use production secrets in preview environments.
+
+Use the package manager and lockfile already established in the repository, if applicable.
+
+### 4. REQUIRED PUBLIC ROUTES
+
+Implement:
+- /
+- /tools
+- /password-generator
+- /passphrase-generator
+- /password-strength-checker
+- /password-entropy-calculator
+- /random-string-generator
+- /guides
+- /guides/[slug]
+- /guides/category/[slug]
+- /about
+- /contact
+- /privacy-policy
+- /terms
+- /cookie-policy where appropriate.
+
+Administration:
+- /admin
+- /admin/articles
+- /admin/articles/new
+- /admin/articles/[id]/edit
+- /admin/categories
+- /admin/media
+- /admin/users
+- /admin/settings
+- /admin/seo
+- /admin/audit-logs
+
+Use appropriate route protection and HTTP status codes. Drafts and private administration content must never be publicly accessible.
+
+### 5. PASSWORD GENERATOR
+
+Implement a complete password generator with:
+- Configurable length.
+- Uppercase and lowercase letters.
+- Numbers and symbols.
+- Optional exclusion of ambiguous characters.
+- Show/hide controls.
+- Copy and regenerate controls.
+- Validation.
+- Clear feedback.
+- A documented, appropriately qualified strength indicator.
+
+Use crypto.getRandomValues() with unbiased character selection and a cryptographically secure shuffle.
+
+Ensure enabled character groups are represented when requested. Reject impossible configurations.
+
+Do not use Math.random() for security-sensitive generation.
+
+Do not send generated passwords to any server, analytics provider or external API.
+
+Never store passwords in PostgreSQL, local storage, session storage, cookies, URLs, logs or telemetry.
+
+### 6. PASSPHRASE GENERATOR
+
+Implement:
+- Configurable word count.
+- A reviewed, bundled word list.
+- Secure uniform word selection using Web Crypto.
+- Optional separators and capitalization.
+- Copy and regenerate controls.
+- An explanation of entropy and security limitations.
+
+Do not use predictable phrases or pseudorandom generation.
+
+Do not upload generated passphrases.
+
+### 7. PASSWORD STRENGTH CHECKER
+
+Implement a local-only strength checker.
+
+Analyze:
+- Length.
+- Common passwords and predictable patterns.
+- Repetition and sequences.
+- Dictionary matches where supported.
+- Actionable improvements.
+
+Prefer a maintained, locally bundled password-strength library with dictionary support, after checking compatibility, licensing and maintenance status.
+
+Do not submit passwords to APIs.
+
+Do not log, store or transmit the input.
+
+Explain that a score is an estimate and not a guarantee of safety.
+
+### 8. ENTROPY CALCULATOR
+
+Implement a transparent entropy calculator.
+
+Show:
+- Assumed character pool or word-selection method.
+- The calculation.
+- Estimated entropy in bits where appropriate.
+- The impact of predictable patterns.
+- Limitations of the assumptions.
+
+Use accurate formulas and tests. Never present theoretical entropy as a guarantee against cracking.
+
+### 9. RANDOM STRING GENERATOR
+
+Implement:
+- Configurable length.
+- Character-set options.
+- Ambiguous-character exclusion.
+- Secure random selection.
+- Copy and regenerate controls.
+- Input validation.
+
+Keep generation client-side. Do not store or transmit generated secrets.
+
+### 10. SUPABASE DATABASE
+
+Use PostgreSQL migrations checked into the repository.
+
+Create appropriate schemas and migrations for:
+- profiles or administrative user metadata.
+- articles.
+- categories.
+- tags and article-tag relationships if required.
+- media metadata.
+- article revisions.
+- site settings.
+- redirects.
+- audit logs.
+- contact messages, if implemented.
+
+Use foreign keys, indexes, uniqueness constraints, timestamps and appropriate deletion behavior.
+
+Use UUID identifiers where appropriate.
+
+Use the Supabase Auth user ID as the reference for authenticated profiles and administrative ownership.
+
+Do not create database tables for generated passwords, passphrases or strength-checker inputs.
+
+Use migrations rather than undocumented manual database changes. Include a documented process for applying migrations to development, preview and production databases.
+
+Do not place privileged credentials in migrations or seed files.
+
+### 11. ROW LEVEL SECURITY
+
+Enable RLS on all exposed application tables.
+
+Define and test explicit policies for:
+- Public access to published, indexable articles and categories only.
+- No public access to drafts, revisions, audit logs or private settings.
+- Authors managing only authorized drafts.
+- Editors publishing and managing permitted content.
+- Administrators managing users and settings.
+- Contact submissions being inaccessible to unauthorized users.
+- Media access according to publication status and intended visibility.
+
+Do not rely on frontend role checks alone.
+
+Verify authorization in database policies and trusted server-side operations.
+
+Grant only the privileges required by each role.
+
+Never expose Supabase service-role or secret keys in client bundles.
+
+Use a publishable key in the browser only with correct RLS policies and grants.
+
+Treat user-controlled metadata and profile role fields as untrusted. Do not let a user grant themselves administrator permissions.
+
+Test unauthorized SELECT, INSERT, UPDATE and DELETE operations.
+
+### 12. AUTHENTICATION AND ADMINISTRATION
+
+Use Supabase Auth with server-side session handling.
+
+Implement:
+- Secure sign-in and sign-out.
+- Password reset.
+- Email verification where appropriate.
+- Session refresh.
+- Protected admin routes.
+- Role-aware authorization.
+- Rate limiting for authentication and contact submissions.
+- Secure cookie settings.
+- Optional multifactor authentication where feasible.
+
+Use a trusted server-side authorization mechanism for roles. Do not trust role information supplied only by a client.
+
+Roles:
+- Administrator.
+- Editor.
+- Author.
+
+Administrators manage users, settings and all content.
+
+Editors review, publish, unpublish and manage permitted articles.
+
+Authors create and edit permitted drafts.
+
+Build a professional, responsive admin panel with dashboard, article management, categories, media, settings and audit logs.
+
+### 13. ARTICLE MANAGEMENT
+
+Implement:
+- Create, edit, preview, publish, unpublish, schedule, archive and restore.
+- Draft and review workflows.
+- Title, slug, excerpt and article body.
+- Author and category.
+- Tags where appropriate.
+- Featured image.
+- SEO title and meta description.
+- Canonical URL.
+- Open Graph metadata.
+- Publication and update dates.
+- Related articles.
+- Revision history.
+- Secure content sanitization.
+- Duplicate-slug validation.
+
+Render public content through a safe HTML allowlist sanitizer or a carefully configured Markdown renderer.
+
+Do not trust raw HTML blindly.
+
+Do not automatically publish unreviewed AI-generated content.
+
+### 14. SITE SETTINGS
+
+Allow authorized administrators to manage:
+- Brand name.
+- Logo and brand assets.
+- Contact details.
+- Footer navigation.
+- Social links.
+- Default SEO metadata.
+- Open Graph image.
+- Sitemap behavior.
+- Advertising configuration.
+- Consent configuration.
+- Maintenance mode, if implemented.
+
+Do not store privileged secrets in public settings tables.
+
+Use environment variables for credentials and sensitive integration settings.
+
+### 15. SEO
+
+Implement:
+- Server-rendered or statically generated public content where appropriate.
+- Unique page titles and descriptions.
+- Canonical URLs.
+- Semantic HTML and logical headings.
+- XML sitemap generated from published canonical pages.
+- robots.txt.
+- Correct 404 and redirect handling.
+- Open Graph metadata.
+- Internal linking.
+- Breadcrumbs where useful.
+- Image optimization and alt text.
+- Search Console verification support.
+
+Exclude drafts, admin pages, private routes, noindex pages and redirect URLs from the sitemap.
+
+Do not block important public assets through robots.txt.
+
+Add appropriate Article, BreadcrumbList, WebSite or Organization structured data only when supported by the actual page content.
+
+Validate structured data. Do not invent reviews, ratings or unsupported claims.
+
+Follow current Google Search Essentials.
+
+### 16. ORIGINAL CONTENT
+
+Prepare an editorial plan covering:
+- Strong password practices.
+- Password length and randomness.
+- Passphrases.
+- Password managers.
+- Password reuse.
+- Multifactor authentication.
+- Entropy and its limitations.
+- Common password mistakes.
+- Account recovery.
+- Responding to compromised accounts.
+
+Each article must provide original, useful, accurate information and references where appropriate.
+
+Do not copy competitor content or publish repetitive, low-value pages merely to increase page count.
+
+Create drafts and require editorial review before publishing.
+
+### 17. PRIVACY AND CONSENT
+
+Implement accurate Privacy Policy, Terms of Use and applicable cookie/consent information.
+
+Document actual use of:
+- Server logs.
+- Authentication.
+- Contact forms.
+- Analytics.
+- Advertising.
+- Cookies.
+- Third-party providers.
+- Data retention.
+
+Do not collect unnecessary personal information.
+
+Configure consent behavior according to the actual technologies and applicable visitor regions.
+
+For personalized ads in the EEA, UK and Switzerland, follow Google's current certified CMP and IAB Transparency and Consent Framework requirements.
+
+Allow users to review or change their consent preferences where required.
+
+Do not load non-essential technologies before required consent.
+
+Do not promise that no data is collected if hosting, analytics or advertising services actually collect it.
+
+### 18. ADSENSE
+
+Prepare optional AdSense integration.
+
+Requirements:
+- Administrator-controlled configuration.
+- No fake publisher IDs.
+- Advertising disabled until configuration and readiness checks are complete.
+- Clearly distinguish ads from website tools and controls.
+- Responsive ad containers.
+- Non-intrusive placements.
+- No incentivized clicks or artificial traffic.
+- No misleading advertising labels.
+- No ads on unfinished or unsuitable content.
+- Appropriate consent integration.
+
+Keep ad configuration independent of the password-generation logic.
+
+Review the current AdSense eligibility requirements and program policies before submitting the domain.
+
+Do not claim approval is guaranteed.
+
+### 19. VERCEL DEPLOYMENT
+
+Configure the application for Vercel.
+
+Requirements:
+- Git-connected deployment workflow.
+- Preview deployments for development branches.
+- Production deployment from the approved production branch.
+- Environment variables configured separately for preview and production.
+- Supabase redirect URLs and allowed origins configured correctly.
+- Appropriate cache headers for public content.
+- No public caching of authenticated admin responses.
+- Correct invalidation when an article is published or updated.
+- Error monitoring and production-safe error handling.
+- Documented deployment rollback procedure.
+
+Do not assume local filesystem writes persist between serverless requests. Use Supabase Storage or another suitable persistent storage service for uploaded files.
+
+Use Vercel-compatible functions and runtimes. Avoid unnecessary long-running processes.
+
+Document the hosting plan's relevant limits and any anticipated costs.
+
+### 20. TESTING
+
+Implement automated tests for:
+- Password generation and character-set requirements.
+- Unbiased selection and impossible configurations.
+- Secure passphrase selection.
+- Entropy calculations.
+- Password privacy and network behavior.
+- Authentication.
+- Role authorization.
+- RLS policies.
+- Draft visibility.
+- Article publishing and revision history.
+- Canonical URLs.
+- Sitemap correctness.
+- Consent behavior.
+- Mobile responsiveness.
+- Accessibility.
+- Broken links and error handling.
+
+Test RLS using different roles and unauthorized requests.
+
+Ensure secrets never appear in browser bundles, logs or analytics.
+
+Run linting, TypeScript checks, automated tests and production builds before release.
+
+### 21. IMPLEMENTATION PHASES
+
+Phase 1: Inspect repository, verify environment and document architecture.
+
+Phase 2: Create the Next.js application, shared layout, responsive navigation and initial Vercel preview deployment.
+
+Phase 3: Configure Supabase, migrations, RLS and authentication.
+
+Phase 4: Implement and test the five security utilities.
+
+Phase 5: Build the administration panel and article publishing workflow.
+
+Phase 6: Implement SEO, site settings, legal pages and privacy controls.
+
+Phase 7: Integrate optional AdSense configuration and appropriate consent management.
+
+Phase 8: Complete security, accessibility, performance and regression testing.
+
+Phase 9: Deploy production, configure domain and Search Console, verify backups and prepare the AdSense readiness report.
+
+After each phase, report:
+- Completed features.
+- Files changed.
+- Migrations created.
+- Tests executed and results.
+- Security findings.
+- Remaining work.
+
+Do not proceed through destructive or irreversible actions without permission.
+
+### 22. DEFINITION OF DONE
+
+The website is complete when:
+1. All five utilities work correctly.
+2. Generated secrets remain client-side.
+3. Supabase RLS and authorization tests pass.
+4. Admin content workflows work end-to-end.
+5. Public pages have correct SEO metadata.
+6. The sitemap contains only eligible canonical content.
+7. Privacy and consent functionality reflects actual behavior.
+8. Advertising can be enabled or disabled safely.
+9. Mobile and accessibility checks pass.
+10. No unresolved critical or high-severity security issues remain.
+11. Deployment and backup documentation is complete.
+12. No public placeholder content or non-functional controls remain.
+13. The live website has been reviewed against current AdSense policies.
+
+Provide the source code, database migrations, seed scripts containing only non-sensitive sample content, tests, setup documentation, deployment documentation, security checklist and AdSense readiness report.
+
+Begin with Phase 1. Inspect before coding, use official current documentation, and proceed incrementally. Never claim untested work is complete or that Google has approved the website without actual approval.

@@ -92,6 +92,68 @@ tight enough to catch real bias, loose enough not to flake.
   revisit if the bundle budget tightens.
 - zxcvbn dictionaries add to client JS; lazy-loading is a Phase 8 option.
 
+## Phase 5 — Administration panel & article workflow ✅ COMPLETE
+
+**Completed**
+- Markdown → HTML with a strict allowlist sanitizer (`marked` + `sanitize-html`,
+  both MIT). Sanitised on write **and** again on render.
+- Article workflow: create, edit, publish, unpublish, schedule, archive, restore,
+  delete; draft / in_review / scheduled / published / archived states.
+- Immutable revision history appended on every save; no UPDATE or DELETE policy.
+- Duplicate-slug validation, SEO fields, Open Graph, canonical, noindex toggle,
+  category assignment, featured-image field.
+- Live Markdown preview via `/api/preview`, which uses the *same* sanitizer as
+  published output and requires authentication.
+- Admin panel: dashboard, articles, categories, media, users, settings, SEO,
+  audit logs — with role-aware navigation.
+- Public routes: `/guides`, `/guides/[slug]`, `/guides/category/[slug]`, sitemap,
+  `/about`, `/contact` with a rate-limited, honeypot-protected form.
+- Three original draft guides seeded (`scripts/seed.mjs`), all left as drafts
+  for editorial review.
+- Audit logging on every state change.
+
+**Key architectural decisions**
+- Public content reads use a **cookie-free anon client** + `"use cache"`; admin
+  reads use the **SSR cookie client**. Public routes cache; admin never does.
+- `generateStaticParams` is deliberately absent. Next 16 `cacheComponents`
+  requires it to return at least one entry, which a fresh CMS cannot guarantee,
+  and enumerating slugs would require a rebuild per publish.
+
+**Verification (all executed)**
+| Gate | Result |
+|---|---|
+| `npm run lint` | pass, 0 errors/warnings |
+| `npm run typecheck` | pass |
+| `npm test` | **160/160** |
+| `npm run build` | pass, 33 routes |
+| `scripts/verify-content.mjs` | **20/20** |
+| `scripts/verify-tools.mjs` | **30/30** |
+| `scripts/smoke-http.mjs` | **16/16** |
+| `scripts/verify-rls.mjs` | **56/56** |
+| `scripts/verify-auth.mjs` | **39/39** |
+
+**Security findings — two real issues found and fixed**
+
+1. **Stored XSS via direct DB insert (high).** Content was sanitised only on
+   write. A row inserted by a migration, seed, or older build would be served
+   verbatim. Verified by injecting `<script>` through the service role and
+   observing it served. Fixed with `sanitizeForRender()` on output.
+
+2. **Stale sitemap (medium).** `"use cache"` meant newly published articles
+   never reached `/sitemap.xml` until the cache expired. Fixed with an
+   uncached `getPublishedSlugsLive()` used by the sitemap.
+
+**Known limitations — recorded, not hidden**
+- **Soft 404.** Article and category routes are partially prerendered, so Next
+  flushes a 200 status before `notFound()` can run. The response body is the
+  branded 404 page and `noindex` metadata is set, but the status is 200.
+  Security is unaffected — draft title and body are verifiably absent from the
+  response. Tracked for Phase 6.
+- Contact-form rate limiting is in-memory, which is unreliable across Vercel
+  serverless instances. Needs a distributed limiter before launch.
+- Media upload UI is not wired to Storage yet (metadata table and buckets are
+  ready); a placeholder screen says so plainly rather than pretending.
+
 ---
 
-## Phase 5 — Administration panel & article workflow ⬜ NEXT
+## Phase 6 — SEO, settings, legal pages, privacy controls ⬜ NEXT

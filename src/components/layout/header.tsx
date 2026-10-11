@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { Suspense, useEffect, useId, useRef, useState } from "react";
 
 import { primaryNav, Wordmark } from "@/components/layout/nav-links";
 
@@ -16,29 +16,72 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
       <div className="container-page flex h-16 items-center justify-between gap-4">
         <Wordmark />
-        <nav aria-label="Main" className="hidden md:block">
-          <ul className="flex items-center gap-1">
-            {primaryNav.map((item) => (
-              <li key={item.href}>
-                <NavLink href={item.href}>{item.label}</NavLink>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <MobileNav />
+
+        {/*
+          Both nav variants read `usePathname()` for active-link state. Under
+          Next 16 cacheComponents that value is runtime-only, so it is streamed
+          through a Suspense boundary rather than blocking the whole page from
+          prerendering. The fallback renders the same links without the
+          active state, so navigation is never missing.
+        */}
+        <Suspense fallback={<StaticNav />}>
+          <ActiveNav />
+        </Suspense>
+
+        <Suspense fallback={<span className="h-10 w-10 md:hidden" />}>
+          <MobileNav />
+        </Suspense>
       </div>
     </header>
   );
 }
 
+function StaticNav() {
+  return (
+    <nav aria-label="Main" className="hidden md:block">
+      <ul className="flex items-center gap-1">
+        {primaryNav.map((item) => (
+          <li key={item.href}>
+            <Link
+              href={item.href}
+              className="inline-block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              {item.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
+function ActiveNav() {
+  const pathname = usePathname();
+
+  return (
+    <nav aria-label="Main" className="hidden md:block">
+      <ul className="flex items-center gap-1">
+        {primaryNav.map((item) => (
+          <li key={item.href}>
+            <NavLink href={item.href} pathname={pathname}>
+              {item.label}
+            </NavLink>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
 function NavLink({
   href,
+  pathname,
   children,
 }: {
   href: string;
+  pathname: string;
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
   const isActive = pathname === href || pathname.startsWith(`${href}/`);
 
   return (
@@ -136,7 +179,19 @@ function MobileNav() {
           <ul className="container-page flex flex-col py-2">
             {primaryNav.map((item) => (
               <li key={item.href}>
-                <NavLink href={item.href}>{item.label}</NavLink>
+                <Link
+                  href={item.href}
+                  aria-current={
+                    pathname === item.href ? "page" : undefined
+                  }
+                  className={`block rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                    pathname === item.href
+                      ? "text-primary"
+                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  }`}
+                >
+                  {item.label}
+                </Link>
               </li>
             ))}
           </ul>
