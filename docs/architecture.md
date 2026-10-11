@@ -47,7 +47,9 @@
 | `src/lib/supabase/` | Server & browser clients, SSR cookie plumbing. |
 | `src/lib/auth/` | Session helpers, role checks, route guards. |
 | `src/lib/content/` | Markdown → sanitized HTML, excerpt, slugify. |
-| `src/lib/seo/` | Metadata builders, JSON-LD, canonical URL helpers. |
+| `src/lib/seo/` | JSON-LD builders + a single escaping rule for embedding them in HTML. |
+| `src/lib/settings/` | Public, non-secret settings layered over static `siteConfig`; RLS-enforced, fail-safe. |
+| `src/lib/ads/` | Fail-closed AdSense readiness + the consent gate that must pass before any ad script loads. Independent of password generation. |
 | `src/lib/validation/` | Zod schemas shared by actions and API routes. |
 | `src/app/` | Routing only. Business logic lives in `src/lib`. |
 

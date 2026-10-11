@@ -41,7 +41,7 @@ const PRESETS: { key: string; label: string; hint: string; value: string }[] = [
     key: "adsense_enabled",
     label: "Enable advertising",
     hint:
-      'JSON boolean. Leave "false" until the AdSense readiness checklist is complete.',
+      'JSON boolean. Ads load only when this is true AND a real NEXT_PUBLIC_ADSENSE_CLIENT_ID is set AND the visitor consents. Leave "false" until the AdSense readiness checklist is complete. Approval is never guaranteed.',
     value: "false",
   },
   {
@@ -55,6 +55,33 @@ const PRESETS: { key: string; label: string; hint: string; value: string }[] = [
     label: "Maintenance mode",
     hint: "JSON boolean. Shows a holding page to visitors.",
     value: "false",
+  },
+  {
+    key: "site_description",
+    label: "Site description",
+    hint: "Default meta description used across public pages.",
+    value: "Generate strong passwords, passphrases and random strings in your browser. Nothing is uploaded, stored or logged.",
+  },
+  {
+    key: "legal_privacy_policy_html",
+    label: "Privacy policy override",
+    hint:
+      "Optional HTML for /privacy-policy. Leave blank to use the built-in text. Sanitised on render.",
+    value: "",
+  },
+  {
+    key: "legal_terms_html",
+    label: "Terms of use override",
+    hint:
+      "Optional HTML for /terms. Leave blank to use the built-in text. Sanitised on render.",
+    value: "",
+  },
+  {
+    key: "legal_cookie_policy_html",
+    label: "Cookie policy override",
+    hint:
+      "Optional HTML for /cookie-policy. Leave blank to use the built-in text. Sanitised on render.",
+    value: "",
   },
 ];
 

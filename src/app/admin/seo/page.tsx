@@ -3,6 +3,8 @@ import Link from "next/link";
 
 import { getPublishedArticles } from "@/lib/content/articles";
 import { requireRole } from "@/lib/auth/session";
+import { describeNotReady } from "@/lib/ads/config";
+import { getAdsConfig } from "@/lib/ads/server";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 import { tools } from "@/lib/tools";
 
@@ -19,7 +21,10 @@ const LIMITS = {
 
 export default async function SeoPage() {
   await requireRole("admin");
-  const articles = await getPublishedArticles(200);
+  const [articles, ads] = await Promise.all([
+    getPublishedArticles(200),
+    getAdsConfig(),
+  ]);
 
   const issues = articles.filter((article) => {
     const titleLength = (article.seo_title || article.title).length;
@@ -137,6 +142,50 @@ export default async function SeoPage() {
             })}
           </ul>
         )}
+      </section>
+
+      <section className="mt-6 rounded-[var(--radius-card)] border border-border bg-background p-5">
+        <h2 className="text-sm font-semibold">Advertising readiness</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          AdSense is optional and off by default. It runs only when configured
+          here <em>and</em> a visitor consents. Approval is never guaranteed.
+        </p>
+        <div className="mt-3 flex items-start gap-3">
+          <span
+            className={`mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+              ads.ready
+                ? "bg-success/15 text-success"
+                : "bg-warning/15 text-warning"
+            }`}
+            aria-hidden="true"
+          >
+            {ads.ready ? "✓" : "!"}
+          </span>
+          <div className="text-sm">
+            <p className={ads.ready ? "font-medium text-success" : "font-medium text-warning"}>
+              {ads.ready ? "Advertising is configured" : "Advertising is not active"}
+            </p>
+            <p className="mt-0.5 text-muted-foreground">
+              {describeNotReady(ads.reason)}
+            </p>
+            {ads.ready && ads.publisherId ? (
+              <p className="mt-1 font-mono text-xs text-muted-foreground">
+                Publisher: {ads.publisherId}
+              </p>
+            ) : null}
+            <p className="mt-2 text-xs text-muted-foreground">
+              Configure in{" "}
+              <Link href="/admin/settings" className="underline underline-offset-2">
+                site settings
+              </Link>{" "}
+              and via environment variables. See{" "}
+              <Link href="/api/ads/config" className="underline underline-offset-2">
+                /api/ads/config
+              </Link>
+              .
+            </p>
+          </div>
+        </div>
       </section>
 
       <p className="mt-8 text-xs text-muted-foreground">

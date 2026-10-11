@@ -2,7 +2,7 @@
 
 import { useDeferredValue, useState } from "react";
 
-import { ErrorMessage } from "@/components/tools/controls";
+import { PrivacyNotice } from "@/components/ui/primitives";
 import { analysePassword } from "@/lib/strength/analyse";
 
 const SCORE_COLOURS = [
@@ -158,10 +158,10 @@ export function PasswordStrengthCheckerTool() {
           last names, keyboard layouts and previous breach wordlists.
         </p>
         <div className="mt-3">
-          <ErrorMessage>
+          <PrivacyNotice>
             Your password is never sent to a server, written to storage, or
             included in logs. Close this tab and it is gone.
-          </ErrorMessage>
+          </PrivacyNotice>
         </div>
       </div>
     </div>

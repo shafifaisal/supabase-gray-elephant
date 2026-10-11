@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AdSlot } from "@/components/ads/ad-slot";
 import { getCategories, getPublishedArticles } from "@/lib/content/articles";
+import { getAdsConfig } from "@/lib/ads/server";
 import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = {
@@ -12,9 +14,10 @@ export const metadata: Metadata = {
 };
 
 export default async function GuidesPage() {
-  const [articles, categories] = await Promise.all([
+  const [articles, categories, ads] = await Promise.all([
     getPublishedArticles(),
     getCategories(),
+    getAdsConfig(),
   ]);
 
   return (
@@ -81,6 +84,20 @@ export default async function GuidesPage() {
           ))}
         </ul>
       )}
+
+      {/*
+        A single, clearly-labelled ad unit, placed AFTER the content and kept
+        visually separate from the guides and from any site controls. It renders
+        nothing unless ads are configured AND the visitor has consented (see
+        AdSlot). AdSense is never placed on a tool page.
+      */}
+      <AdSlot
+        ready={ads.ready}
+        publisherId={ads.publisherId}
+        slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_GUIDES ?? "0000000001"}
+        format="auto"
+        className="mt-12"
+      />
     </div>
   );
 }

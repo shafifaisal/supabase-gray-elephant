@@ -13,7 +13,6 @@ export const metadata: Metadata = {
 };
 
 /** Reads the recovery session cookie, so it cannot be prerendered. */
-export const instant = false;
 
 export default async function ResetPasswordPage() {
   const supabase = await createClient();

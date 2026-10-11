@@ -1,18 +1,22 @@
 import Link from "next/link";
 
 import { BrandMark } from "@/components/layout/nav-links";
+import { getBrandName, getFooterText } from "@/lib/settings/public";
 
 /**
- * Resolved once at build time (and cached) so prerendering stays deterministic.
+ * Resolved once per render so prerendering stays deterministic.
  * The value only needs to change when the calendar year does.
  */
-async function getCurrentYear(): Promise<number> {
-  "use cache";
+function getCurrentYear(): number {
   return new Date().getUTCFullYear();
 }
 
 export async function Footer() {
-  const year = await getCurrentYear();
+  const year = getCurrentYear();
+  const [brandName, footerText] = await Promise.all([
+    getBrandName(),
+    getFooterText(),
+  ]);
 
   const sections = [
     {
@@ -50,7 +54,7 @@ export async function Footer() {
           <div>
             <div className="flex items-center gap-2 font-bold">
               <BrandMark className="h-6 w-6 text-primary" />
-              <span>iPassGenerator</span>
+              <span>{brandName}</span>
             </div>
             <p className="mt-3 max-w-xs text-sm text-muted-foreground">
               Privacy-first password security tools. Everything runs in your
@@ -83,8 +87,10 @@ export async function Footer() {
         </div>
 
         <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>&copy; {year} iPassGenerator. All rights reserved.</p>
-          <p>Generated secrets never leave your device.</p>
+          <p>
+            &copy; {year} {brandName}. All rights reserved.
+          </p>
+          <p>{footerText}</p>
         </div>
       </div>
     </footer>

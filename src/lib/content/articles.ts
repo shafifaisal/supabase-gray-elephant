@@ -47,17 +47,11 @@ const ARTICLE_COLUMNS = "id, slug, title, excerpt, body_md, body_html, status, a
 /**
  * Returns published, publicly visible articles.
  *
- * "use cache" makes this safe for static prerendering: the result is cached and
- * reused until explicitly invalidated. Publishing calls `revalidatePath`, so a
- * newly published article appears immediately rather than after a rebuild.
- *
  * The cookie-free client is correct here because this reads PUBLIC content
  * only; RLS with the anon key enforces exactly the same visibility rules a
- * visitor would get.
+ * visitor would get. Caching is applied at the route level via `revalidate`.
  */
 export async function getPublishedArticles(limit = 50): Promise<ArticleRow[]> {
-  "use cache";
-
   const supabase = createBuildClient();
 
   const { data, error } = await supabase
@@ -82,8 +76,6 @@ export async function getPublishedArticles(limit = 50): Promise<ArticleRow[]> {
 export async function getPublishedArticleBySlug(
   slug: string,
 ): Promise<ArticleRow | null> {
-  "use cache";
-
   const supabase = createBuildClient();
 
   const { data, error } = await supabase
@@ -101,8 +93,6 @@ export async function getPublishedArticleBySlug(
 
 /** Slugs of every published article, used by the sitemap. */
 export async function getPublishedSlugs(): Promise<string[]> {
-  "use cache";
-
   const supabase = createBuildClient();
 
   const { data, error } = await supabase
@@ -138,8 +128,6 @@ export async function getPublishedSlugsLive(): Promise<string[]> {
 }
 
 export async function getCategories(): Promise<CategoryRow[]> {
-  "use cache";
-
   const supabase = createBuildClient();
 
   const { data, error } = await supabase
@@ -157,8 +145,6 @@ export async function getCategories(): Promise<CategoryRow[]> {
 export async function getArticlesByCategory(
   categorySlug: string,
 ): Promise<{ category: CategoryRow | null; articles: ArticleRow[] }> {
-  "use cache";
-
   const supabase = createBuildClient();
 
   const { data: category } = await supabase
@@ -190,8 +176,6 @@ export async function getRelatedArticles(
   article: Pick<ArticleRow, "id" | "category_id">,
   limit = 3,
 ): Promise<ArticleRow[]> {
-  "use cache";
-
   if (!article.category_id) return [];
 
   const supabase = createBuildClient();

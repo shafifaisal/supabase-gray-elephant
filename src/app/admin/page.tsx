@@ -13,7 +13,6 @@ import { formatDateTime } from "@/lib/format";
  * session cookie via `requireRole`. The explicit `Cache-Control: private,
  * no-store` header is applied in src/proxy.ts.
  */
-export const instant = false;
 
 export const metadata: Metadata = {
   title: "Admin dashboard",

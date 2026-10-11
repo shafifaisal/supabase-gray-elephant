@@ -40,8 +40,6 @@ export async function generateMetadata({
  * real 404 status before any streaming begins. See the note on the article
  * route for the full reasoning.
  */
-export const instant = false;
-
 export default async function CategoryPage({
   params,
 }: {

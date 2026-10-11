@@ -12,7 +12,6 @@ export const metadata: Metadata = {
  * Every admin route reads the session cookie, so none can be prerendered.
  * See Next 16 `cacheComponents`.
  */
-export const instant = false;
 
 const NAV = [
   { href: "/admin", label: "Dashboard", min: "author" },
@@ -83,7 +82,7 @@ export default async function AdminLayout({
                 href="/"
                 className="text-sm text-muted-foreground hover:text-foreground"
               >
-                ← Back to site
+                ← Back to site
               </Link>
             </div>
           </aside>

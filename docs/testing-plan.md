@@ -51,8 +51,22 @@ Also scan built client bundles for secret-key patterns.
 
 ## Gates before release
 
-`npm run lint` · `npm run typecheck` · `npm test` · `npm run build` ·
-Playwright suite · bundle secret scan.
+`npm run lint` · `npm run typecheck` · `npm test` · `npm run build` · Playwright suite · bundle secret scan.
+
+## Phase 8 verification suite (added)
+
+Four standalone scripts gate the release. They run against a built + started
+server (`npm run build && npm start`), except performance which is build-only.
+
+| Script | npm | Proves |
+|---|---|---|
+| `scripts/verify-security.mjs` | `verify:security` | Security headers; `/admin` `no-store`; **no secret in client bundles** (scans `.next/static` for the real service-role key + high-confidence patterns); no secret-named env var is `NEXT_PUBLIC_`. |
+| `scripts/verify-a11y.mjs` | `verify:a11y` | axe-core WCAG 2.1 A/AA on every public page; one `<h1>`; a `<main>` landmark; no horizontal scroll at 360/768/1280. |
+| `scripts/verify-regression.mjs` | `verify:regression` | No broken internal links; **privacy invariant at runtime** (generation → no external request, empty storage, value not in URL); consent banner shows/accepts/persists; every tool renders. |
+| `scripts/verify-performance.mjs` | `verify:performance` | Client JS bundle-size budget (gzipped total + largest chunk) — a deterministic proxy for load performance. |
+
+No new dependencies: axe-core is injected from the existing install; Playwright
+chromium is already present.
 
 ## Definition of test-done
 

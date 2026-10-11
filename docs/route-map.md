@@ -56,4 +56,4 @@ Legal pages are CMS-editable (slug-pinned) so text stays accurate.
 - `POST /api/contact` — rate-limited submission.
 - `POST /api/revalidate` — on-demand ISR revalidation (secret-verified).
 - Server Actions for all admin mutations, each with a Zod schema and role check.
-- `GET /api/ads/config` — public ad slots (only when enabled).
+- `GET /api/ads/config` — public ad readiness (only when enabled; never a secret or fake ID).

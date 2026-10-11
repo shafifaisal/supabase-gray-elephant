@@ -12,7 +12,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "verify": "npm run lint && npm run typecheck && npm test"
+    "verify": "npm run lint && npm run typecheck && npm test",
+    "verify:security": "node scripts/verify-security.mjs",
+    "verify:a11y": "node scripts/verify-a11y.mjs",
+    "verify:regression": "node scripts/verify-regression.mjs",
+    "verify:performance": "node scripts/verify-performance.mjs",
+    "prelaunch": "node scripts/prelaunch-check.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

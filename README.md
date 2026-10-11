@@ -41,6 +41,12 @@ Full instructions: [`docs/setup.md`](docs/setup.md)
 | `npm run typecheck` | tsc --noEmit |
 | `npm test` | unit + integration |
 | `npm run test:e2e` | Playwright |
+| `npm run verify` | lint + typecheck + unit/integration |
+| `npm run verify:security` | headers, no-store, client-bundle secret scan |
+| `npm run verify:a11y` | WCAG 2.1 A/AA on public routes |
+| `npm run verify:regression` | links, privacy invariant, consent, tools |
+| `npm run verify:performance` | gzip bundle budget |
+| `npm run prelaunch` | pre-deploy repo readiness gate |
 
 ## Docs
 
@@ -52,11 +58,14 @@ Full instructions: [`docs/setup.md`](docs/setup.md)
 | [`docs/database-schema.md`](docs/database-schema.md) | Tables, RLS, migrations |
 | [`docs/testing-plan.md`](docs/testing-plan.md) | Test coverage map |
 | `docs/setup.md` | Local setup (Phase 2) |
-| `docs/deployment.md` | Vercel + Supabase deploy & rollback (Phase 9) |
+| `docs/deployment.md` | Vercel + Supabase deploy, domain, Search Console, backups, rollback (Phase 9) |
+| `docs/security-checklist.md` | Security posture + launch sign-off (Phase 9) |
+| `docs/adsense-readiness.md` | AdSense status, consent gate, enablement runbook (Phase 9) |
 
 ## Status
 
-Phase 1 complete — architecture documented, scaffold pending. See
+Phases 1–9 complete. Ads are **off and fail-closed** pending a real approved
+AdSense account; the launch runbook is in `docs/deployment.md`. See
 `docs/status.md` for live progress.
 
 ---

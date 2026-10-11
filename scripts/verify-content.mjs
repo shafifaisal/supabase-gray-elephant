@@ -110,15 +110,15 @@ try {
     /couldn.?t find|404|not found/i.test(draftHtml),
   );
 
-  // KNOWN LIMITATION (recorded, not hidden): under Next 16 cacheComponents the
-  // article route is partially prerendered, so the static shell is flushed with
-  // a 200 before notFound() runs. The body is correct and noindex metadata is
-  // set, but the status is a soft 404. Tracked for Phase 6.
-  if (draftRes.status !== 404) {
-    console.log(
-      `  NOTE  draft URL returns ${draftRes.status}, not 404 (soft 404 — known limitation)`,
-    );
-  }
+  // FIXED IN PHASE 6: with cacheComponents disabled, the article route resolves
+  // its data before streaming, so notFound() commits a REAL 404 status. This is
+  // now a hard assertion — a draft URL served as 200 would be a soft 404 that
+  // search engines treat as a valid page.
+  check(
+    "draft URL returns a real 404 status (not a soft 404)",
+    draftRes.status === 404,
+    `got ${draftRes.status}`,
+  );
 
   const pubRes = await fetch(`${site}/guides/${PUBLISHED_SLUG}`, { redirect: "manual" });
   check("published URL returns 200", pubRes.status === 200, `got ${pubRes.status}`);
@@ -190,6 +190,65 @@ try {
   check("served page has no onerror handler", !xssHtml.includes("onerror"), "onerror leaked");
 
   await admin.from("articles").delete().eq("id", xssArticle.id);
+
+  // --- Phase 6: legal pages, site structured data, breadcrumbs -----------
+  console.log("\nLegal pages and site structured data:");
+
+  for (const [path, heading] of [
+    ["/privacy-policy", /Privacy Policy/i],
+    ["/terms", /Terms of Use/i],
+    ["/cookie-policy", /Cookie Policy/i],
+  ]) {
+    const res = await fetch(`${site}${path}`, { redirect: "manual" });
+    const html = await res.text();
+    check(`${path} returns 200`, res.status === 200, `got ${res.status}`);
+    check(`${path} has its heading`, heading.test(html));
+    check(`${path} shows a last-updated date`, /Last updated/i.test(html));
+    check(`${path} has a canonical URL`, html.includes('rel="canonical"'));
+    check(`${path} is indexable`, !/<meta name="robots" content="noindex/i.test(html));
+  }
+
+  const homeHtml = await (await fetch(`${site}/`, { redirect: "manual" })).text();
+  check(
+    "home emits Organization structured data",
+    /"@type":"Organization"|"@type": "Organization"/.test(homeHtml),
+  );
+  check(
+    "home emits WebSite structured data",
+    /"@type":"WebSite"|"@type": "WebSite"/.test(homeHtml),
+  );
+
+  // `html` (read above) is the published article page; reuse it rather than
+  // re-reading a Response body, which can only be consumed once.
+  check(
+    "article emits BreadcrumbList structured data",
+    /"@type":"BreadcrumbList"|"@type": "BreadcrumbList"/.test(html),
+  );
+
+  // Privacy: the consent banner is client-only (server snapshot hides it), so
+  // no analytics/ad script and no consent UI is present in the served HTML.
+  check(
+    "no third-party analytics/ads script in served HTML",
+    !/googletagmanager|google-analytics|adsbygoogle|ga\(/i.test(homeHtml),
+  );
+
+  // --- Phase 7: AdSense fails closed until configured + consented ---------
+  console.log("\nAdSense (Phase 7):");
+  const adsRes = await fetch(`${site}/api/ads/config`, { redirect: "manual" });
+  const adsJson = await adsRes.json();
+  check("ads config endpoint returns 200", adsRes.status === 200, `got ${adsRes.status}`);
+  check("ads config is not cached", adsRes.headers.get("cache-control")?.includes("no-store"));
+  // With no real publisher ID configured, ads must report not-ready and must
+  // NEVER return a fabricated publisher ID.
+  check("ads are not ready without configuration", adsJson.ready === false);
+  check("ads config returns a null publisher ID when not ready", adsJson.publisherId === null);
+  check("ads config declares consent is still required", adsJson.consentRequired === true);
+
+  const guidesHtml = await (await fetch(`${site}/guides`, { redirect: "manual" })).text();
+  check(
+    "guides page contains no AdSense script while ads are off",
+    !/pagead2\.googlesyndication|adsbygoogle/i.test(guidesHtml),
+  );
 } finally {
   console.log("\nCleaning up fixtures...");
   for (const id of [draftId, publishedId].filter(Boolean)) {

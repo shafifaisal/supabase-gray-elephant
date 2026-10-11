@@ -15,7 +15,18 @@ import { absoluteUrl } from "@/lib/site";
  * Slugs are read UNCACHED so a newly published article appears immediately
  * rather than waiting for a cache to expire. Search engines poll this file, so
  * correctness matters more than shaving one query.
+ *
+ * RENDERING
+ * ---------
+ * The route is forced dynamic. With `cacheComponents` disabled (see
+ * next.config.ts) a route with no dynamic input is prerendered once at build
+ * time and then served from the Full Route Cache — which would freeze the
+ * sitemap and hide articles published after the last build. `force-dynamic`
+ * guarantees `getPublishedSlugsLive()` runs on every request, which is the
+ * entire reason that function exists.
  */
+
+export const dynamic = "force-dynamic";
 
 /** Static pages that are always worth indexing. */
 const STATIC_PATHS: { path: string; priority: number; changeFrequency: "daily" | "weekly" | "monthly" }[] = [

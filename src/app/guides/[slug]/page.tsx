@@ -9,6 +9,8 @@ import {
   type ArticleRow,
 } from "@/lib/content/articles";
 import { sanitizeForRender } from "@/lib/content/markdown";
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbNode } from "@/lib/seo/structured-data";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 import { formatDate } from "@/lib/format";
 
@@ -27,8 +29,13 @@ function resolveMetadata(article: ArticleRow) {
   return { seoTitle, description, url };
 }
 
-/** JSON-LD for an article. `"<"` is escaped so it cannot break out. */
-function structuredData(params: {
+/**
+ * JSON-LD for an article.
+ *
+ * Returns the object; escaping is applied centrally by `<JsonLd>` when it is
+ * serialised, so the rule lives in exactly one place.
+ */
+function articleStructuredData(params: {
   seoTitle: string;
   description: string;
   url: string;
@@ -36,7 +43,7 @@ function structuredData(params: {
 }) {
   const { seoTitle, description, url, article } = params;
 
-  return JSON.stringify({
+  return {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: seoTitle,
@@ -50,7 +57,7 @@ function structuredData(params: {
       name: siteConfig.name,
       url: siteConfig.url,
     },
-  }).replace(/</g, "\\u003c");
+  };
 }
 
 /**
@@ -100,35 +107,19 @@ export async function generateMetadata({
 }
 
 /**
- * Article pages are not enumerated at build time.
+ * Article pages are server-rendered on demand with a short revalidation window.
  *
- * This is a CMS, so the published set changes whenever an editor publishes.
- * Next's `cacheComponents` mode requires `generateStaticParams` to return at
- * least one entry, which cannot be guaranteed on a fresh install — so the route
- * is a static shell with the article streamed through a Suspense boundary.
+ * Correct HTTP status codes take priority over static output: the article must
+ * be resolved BEFORE anything streams, otherwise `notFound()` cannot set a 404
+ * and a draft URL would be served to crawlers as a successful page.
  *
- * Queries are wrapped in `"use cache"`, so repeats are served from cache, and
- * publishing triggers `revalidatePath`. RLS guarantees a draft can never
- * render, even if its slug is guessed.
+ * `generateStaticParams` is deliberately absent — a CMS cannot enumerate its
+ * published slugs at build time, and Next's `cacheComponents` mode requires it
+ * to return at least one entry.
+ *
+ * Publishing calls `revalidatePath`, so a newly published article is visible
+ * immediately. RLS guarantees a draft can never render, even if guessed.
  */
-/**
- * Article pages are server-rendered on demand rather than prerendered.
- *
- * This is a deliberate trade-off. Correct HTTP status codes matter more than
- * static output here: an article page must be able to call `notFound()` BEFORE
- * streaming starts, otherwise Next has already committed a 200 and a draft URL
- * is served to crawlers as a successful page. `instant = false` is the
- * documented Next 16 option for a route that must read `params` and resolve its
- * data before rendering.
- *
- * The underlying queries are `"use cache"`d, so repeat requests are served
- * from cache rather than hitting Postgres each time, and publishing calls
- * `revalidatePath` to refresh them immediately.
- *
- * RLS guarantees a draft can never render, even if its slug is guessed.
- */
-export const instant = false;
-
 export default async function GuidePage({
   params,
 }: {
@@ -137,14 +128,8 @@ export default async function GuidePage({
   const { slug } = await params;
 
   /*
-   * The article lookup happens OUTSIDE the Suspense boundary, and the query is
-   * `"use cache"`d so it still prerenders statically.
-   *
-   * This ordering matters for correctness: `notFound()` must run before any
-   * streaming has begun, otherwise Next has already committed a 200 status and
-   * a draft URL would be served to crawlers as a successful page. Resolving the
-   * article first guarantees a genuine 404 for both unknown and unpublished
-   * slugs.
+   * The article lookup happens before any output, so `notFound()` can commit a
+   * real 404 status. Only secondary content (related articles) streams.
    */
   const article = await getPublishedArticleBySlug(slug);
 
@@ -152,15 +137,20 @@ export default async function GuidePage({
 
   const { seoTitle, description, url } = resolveMetadata(article);
 
+  const breadcrumb = breadcrumbNode([
+    { name: "Home", path: "/" },
+    { name: "Guides", path: "/guides" },
+    { name: article.title, path: `/guides/${article.slug}` },
+  ]);
+
   return (
     <article className="container-page py-10">
       {/* Article structured data. Only fields we can genuinely evidence are
           included — no invented ratings, reviews or authorship claims.
           "<" is escaped so the payload cannot terminate the script element. */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: structuredData({ seoTitle, description, url, article }) }}
-      />
+      <JsonLd data={articleStructuredData({ seoTitle, description, url, article })} />
+      {/* Breadcrumb structured data, matching the visible breadcrumb below. */}
+      <JsonLd data={breadcrumb} />
 
       <nav aria-label="Breadcrumb" className="mb-6">
         <ol className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">

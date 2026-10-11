@@ -20,9 +20,11 @@
   --color-border: oklch(90% 0.006 260);
   --color-ring: oklch(52% 0.16 262);
 
-  --color-success: oklch(62% 0.15 150);
-  --color-warning: oklch(74% 0.15 80);
-  --color-danger: oklch(58% 0.19 25);
+  --color-success: oklch(52% 0.15 150);
+  --color-warning: oklch(58% 0.14 75);
+  /* Danger is darkened to clear 4.5:1 as text on the light background.
+     The brighter value is kept only for non-text fills via -fill below. */
+  --color-danger: oklch(48% 0.2 25);
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -48,6 +50,12 @@
     --color-accent-foreground: oklch(17% 0.015 165);
 
     --color-border: oklch(30% 0.02 260);
+
+    /* Lighter semantic colours so status text clears contrast on the dark
+       background. The light-mode values are tuned for a light background. */
+    --color-success: oklch(72% 0.15 150);
+    --color-warning: oklch(80% 0.13 80);
+    --color-danger: oklch(70% 0.17 27);
   }
 }
 

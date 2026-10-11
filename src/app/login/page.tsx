@@ -19,7 +19,6 @@ export const metadata: Metadata = {
  * Reads the session cookie to skip the form for signed-in users, so this
  * route must not be prerendered. See Next 16 `cacheComponents`.
  */
-export const instant = false;
 
 export default async function LoginPage({
   searchParams,

@@ -30,6 +30,20 @@ const DEFAULT_OPTIONS: Options = {
 
 const SEPARATORS = ["-", ".", "_", " ", ""];
 
+/**
+ * Accessible names for each separator. The visible glyph is ambiguous to a
+ * screen reader (a lone "-" or a space reads as nothing), so each option gets
+ * an explicit label. This is what gives every radio a non-empty accessible
+ * name — an empty one is a WCAG failure.
+ */
+const SEPARATOR_LABELS: Record<string, string> = {
+  "-": "Hyphen",
+  ".": "Period",
+  _: "Underscore",
+  " ": "Space",
+  "": "None",
+};
+
 export function PassphraseGeneratorTool() {
   const [options, setOptions] = useState<Options>(DEFAULT_OPTIONS);
   const [visible, setVisible] = useState(false);
@@ -149,6 +163,8 @@ export function PassphraseGeneratorTool() {
                   type="radio"
                   name="separator"
                   className="sr-only"
+                  value={separator}
+                  aria-label={`Separator: ${SEPARATOR_LABELS[separator]}`}
                   checked={options.separator === separator}
                   onChange={() => update("separator", separator)}
                 />
