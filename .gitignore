@@ -32,6 +32,9 @@ yarn-error.log*
 # env files — NEVER commit
 .env
 .env*.local
+
+# credential dumps — never commit (e.g. Supabase dashboard exports)
+imp.txt
 .env.development.local
 .env.test.local
 .env.production.local

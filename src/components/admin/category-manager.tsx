@@ -116,7 +116,7 @@ function CategoryRow({
       <div className="min-w-0">
         <p className="font-medium">{category.name}</p>
         <p className="font-mono text-xs text-muted-foreground">
-          /guides/category/{category.slug}
+          /articles/category/{category.slug}
         </p>
         {category.description ? (
           <p className="mt-1 text-xs text-muted-foreground">{category.description}</p>

@@ -6,7 +6,7 @@ import { siteConfig } from "@/lib/site";
 import { toolPath, tools } from "@/lib/tools";
 
 export const metadata: Metadata = {
-  title: "Privacy-first password security tools",
+  title: { absolute: "Instant Password Generator - Free Tool Secure & Reliable" },
   description: siteConfig.description,
   alternates: { canonical: "/" },
 };
@@ -14,16 +14,20 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <>
-      <section className="border-b border-border bg-secondary/30">
+      <section className="relative isolate w-full overflow-hidden border-b border-border bg-[#04070f] text-white">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-20 bg-[url('/hero-binary.svg')] bg-cover bg-center bg-no-repeat"
+        />
         <div className="container-page py-16 sm:py-24">
           <div className="max-w-3xl">
-            <p className="text-sm font-semibold tracking-wide text-primary uppercase">
+            <p className="text-sm font-semibold tracking-wide text-sky-300 uppercase">
               Runs entirely in your browser
             </p>
-            <h1 className="mt-3 text-4xl font-bold tracking-tight text-balance sm:text-5xl">
+            <h1 className="mt-3 text-4xl font-bold tracking-tight text-balance text-white sm:text-5xl">
               Strong passwords, without uploading anything
             </h1>
-            <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
+            <p className="mt-5 max-w-2xl text-lg text-white/80">
               Generate passwords, passphrases and random strings using your
               device&rsquo;s cryptographic random number generator. Nothing is sent
               to a server, saved to storage or written to a log.
@@ -37,12 +41,12 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/tools"
-                className="inline-flex h-11 items-center justify-center rounded-md border border-border bg-background px-6 text-sm font-semibold transition-colors hover:bg-secondary"
+                className="inline-flex h-11 items-center justify-center rounded-md border border-white/25 bg-white/10 px-6 text-sm font-semibold text-white transition-colors hover:bg-white/20"
               >
                 Browse all tools
               </Link>
             </div>
-            <div className="mt-10">
+            <div className="mt-10 [&_[role='note']]:border-white/15 [&_[role='note']]:bg-white/5 [&_[role='note']]:text-white/75 [&_[role='note']_svg]:text-sky-300">
               <PrivacyNotice />
             </div>
           </div>
@@ -125,16 +129,16 @@ export default function HomePage() {
             <Card className="self-start">
               <h3 className="text-lg font-semibold">Not sure where to start?</h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                Read the guides for practical habits: how much randomness you
+                Read the articles for practical habits: how much randomness you
                 actually need, when a passphrase beats a random string, and why
                 length matters more than symbol soup.
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
                 <Link
-                  href="/guides"
+                  href="/articles"
                   className="inline-flex h-10 items-center rounded-md border border-border px-4 text-sm font-semibold transition-colors hover:bg-secondary"
                 >
-                  Read the guides
+                  Read the articles
                 </Link>
                 <Link
                   href="/about"

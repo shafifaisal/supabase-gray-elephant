@@ -217,11 +217,11 @@ export default async function EditArticlePage({
       <section className="rounded-[var(--radius-card)] border border-border bg-background p-5">
         <h2 className="text-sm font-semibold">Public URL</h2>
         <p className="mt-1 font-mono text-sm text-muted-foreground">
-          /guides/{article.slug}
+          /articles/{article.slug}
         </p>
         {article.status === "published" ? (
           <Link
-            href={`/guides/${article.slug}`}
+            href={`/articles/${article.slug}`}
             className="mt-3 inline-block text-sm text-primary underline underline-offset-2"
           >
             View live page

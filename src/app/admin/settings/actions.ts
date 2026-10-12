@@ -4,11 +4,70 @@ import { revalidatePath } from "next/cache";
 
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import type { ActionState } from "@/lib/validation/article";
+import {
+  fieldErrorsFrom,
+  settingSchema,
+  type ActionState,
+} from "@/lib/validation/article";
 
-import { saveSettingAction } from "@/app/admin/users/actions";
+/**
+ * Saves a site setting.
+ *
+ * Defined here rather than re-exported from another module: Next.js cannot turn
+ * a re-exported server action into a client reference, so passing one to a client
+ * component fails at runtime with "Cannot read properties of undefined".
+ */
+export async function saveSettingAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const actor = await requireRole("admin");
 
-export { saveSettingAction };
+  const raw = formData.get("value");
+  const isSecret = formData.get("is_secret") === "on";
+
+  const parsed = settingSchema.safeParse({
+    key: formData.get("key"),
+    value: raw,
+    is_secret: isSecret,
+  });
+
+  if (!parsed.success) {
+    return { fieldErrors: fieldErrorsFrom(parsed.error) };
+  }
+
+  const supabase = await createClient();
+
+  // Interpret the value as JSON when possible, so structured settings work.
+  let value: unknown = parsed.data.value;
+  try {
+    value = JSON.parse(String(raw));
+  } catch {
+    value = raw;
+  }
+
+  const { error } = await supabase.from("site_settings").upsert({
+    key: parsed.data.key,
+    value,
+    is_secret: isSecret,
+    updated_by: actor.id,
+  });
+
+  if (error) {
+    return { error: `Could not save the setting: ${error.message}` };
+  }
+
+  await supabase.from("audit_logs").insert({
+    actor_id: actor.id,
+    action: "setting.updated",
+    entity_type: "setting",
+    entity_id: parsed.data.key,
+  });
+
+  revalidatePath("/admin/settings");
+
+  return { success: true };
+}
 
 /**
  * Reads site settings for the admin screen.

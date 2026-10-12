@@ -7,10 +7,10 @@
  *
  * PUBLIC READS FAIL SOFT, ADMIN READS DO NOT
  * -----------------------------------------
- * The public getters are called from PRERENDERED routes (`/guides` is rendered
+ * The public getters are called from PRERENDERED routes (`/articles` is rendered
  * at build time), so a throw there fails the whole deployment. That is exactly
  * what happened when the `articles` table was missing from the configured
- * project: the build died instead of serving an empty guides page.
+ * project: the build died instead of serving an empty articles page.
  *
  * A public read therefore degrades to an empty result and renders the page's
  * existing empty state. The error is logged, never swallowed, so the

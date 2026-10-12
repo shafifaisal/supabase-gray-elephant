@@ -275,8 +275,8 @@ export async function changeStatusAction(formData: FormData): Promise<void> {
 
   // Publishing must invalidate the public caches immediately.
   if (status === "published" || status === "archived") {
-    revalidatePath("/guides");
-    revalidatePath(`/guides/${existing.slug}`);
+    revalidatePath("/articles");
+    revalidatePath(`/articles/${existing.slug}`);
     revalidatePath("/sitemap.xml");
   }
 
@@ -308,8 +308,8 @@ export async function deleteArticleAction(formData: FormData): Promise<void> {
     before: { slug: existing.slug, title: existing.title },
   });
 
-  revalidatePath("/guides");
-  revalidatePath(`/guides/${existing.slug}`);
+  revalidatePath("/articles");
+  revalidatePath(`/articles/${existing.slug}`);
   revalidatePath("/sitemap.xml");
 
   redirect("/admin/articles?deleted=1");
@@ -343,8 +343,8 @@ export async function publishDueArticles(): Promise<number> {
       entityId: article.id,
       after: { slug: article.slug, status: "published" },
     });
-    revalidatePath("/guides");
-    revalidatePath(`/guides/${article.slug}`);
+    revalidatePath("/articles");
+    revalidatePath(`/articles/${article.slug}`);
   }
 
   revalidatePath("/sitemap.xml");

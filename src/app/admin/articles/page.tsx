@@ -102,7 +102,7 @@ export default async function AdminArticlesPage({
                     </Link>
                   </h2>
                   <p className="mt-1 font-mono text-xs text-muted-foreground">
-                    /guides/{article.slug}
+                    /articles/{article.slug}
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     Updated {formatDateTime(new Date(article.updated_at))}
@@ -130,7 +130,7 @@ export default async function AdminArticlesPage({
       <section className="mt-10 rounded-[var(--radius-card)] border border-border bg-background p-5">
         <h2 className="text-sm font-semibold">Editorial plan</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Guides must be original, reviewed and accurate. Nothing publishes
+          Articles must be original, reviewed and accurate. Nothing publishes
           automatically.
         </p>
         <ul className="mt-3 grid gap-2 sm:grid-cols-2">

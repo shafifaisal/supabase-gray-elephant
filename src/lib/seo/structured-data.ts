@@ -53,7 +53,7 @@ export function organizationNode(): JsonLdNode {
 
 /**
  * WebSite node, including the site-search action so search engines can surface
- * a sitelinks search box. The search URL points at the guides index, which is
+ * a sitelinks search box. The search URL points at the articles index, which is
  * the only indexable search surface.
  */
 export function webSiteNode(): JsonLdNode {
@@ -69,7 +69,7 @@ export function webSiteNode(): JsonLdNode {
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: `${absoluteUrl("/guides")}?q={search_term_string}`,
+        urlTemplate: `${absoluteUrl("/articles")}?q={search_term_string}`,
       },
       "query-input": "required name=search_term_string",
     },

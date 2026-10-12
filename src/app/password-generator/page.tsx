@@ -7,14 +7,18 @@ import { getTool } from "@/lib/tools";
 
 const tool = getTool("password-generator")!;
 
+const pageTitle = "Instant Password Generator - Free Tool Secure & Reliable";
+const pageDescription =
+  "Free password generator to create strong, secure random passwords online. Customize length, symbols, and complexity with real-time entropy insights.";
+
 export const metadata: Metadata = {
-  title: tool.name,
-  description: tool.description,
+  title: { absolute: pageTitle },
+  description: pageDescription,
   keywords: [...tool.keywords],
   alternates: { canonical: "/password-generator" },
   openGraph: {
-    title: `${tool.name} — runs in your browser`,
-    description: tool.description,
+    title: pageTitle,
+    description: pageDescription,
     url: absoluteUrl("/password-generator"),
     type: "website",
   },

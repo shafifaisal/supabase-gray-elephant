@@ -10,13 +10,13 @@ import { getAdsConfig } from "@/lib/ads/server";
 import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = {
-  title: "Guides",
+  title: "Articles",
   description:
-    "Practical, original guides on password strength, passphrases, password managers, multi-factor authentication and recovering compromised accounts.",
-  alternates: { canonical: "/guides" },
+    "Practical, original articles on password strength, passphrases, password managers, multi-factor authentication and recovering compromised accounts.",
+  alternates: { canonical: "/articles" },
 };
 
-export default async function GuidesPage() {
+export default async function ArticlesPage() {
   const [articles, categories, ads] = await Promise.all([
     getPublishedArticles(),
     getPublicCategories(),
@@ -26,7 +26,7 @@ export default async function GuidesPage() {
   return (
     <div className="container-page py-10">
       <div className="max-w-3xl">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Guides</h1>
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Articles</h1>
         <p className="mt-3 text-lg text-muted-foreground">
           Practical writing on password security. Every article is original,
           reviewed before publication, and written to be useful rather than
@@ -35,12 +35,12 @@ export default async function GuidesPage() {
       </div>
 
       {categories.length > 0 ? (
-        <nav aria-label="Guide categories" className="mt-8">
+        <nav aria-label="Article categories" className="mt-8">
           <ul className="flex flex-wrap gap-2">
             {categories.map((category) => (
               <li key={category.id}>
                 <Link
-                  href={`/guides/category/${category.slug}`}
+                  href={`/articles/category/${category.slug}`}
                   className="inline-block rounded-full border border-border bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary"
                 >
                   {category.name}
@@ -53,7 +53,7 @@ export default async function GuidesPage() {
 
       {articles.length === 0 ? (
         <div className="mt-10 rounded-[var(--radius-card)] border border-dashed border-border bg-secondary/40 p-10 text-center">
-          <h2 className="text-lg font-semibold">Guides are being written</h2>
+          <h2 className="text-lg font-semibold">Articles are being written</h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
             Articles appear here once an editor has reviewed and published them.
             In the meantime, the tools above are ready to use.
@@ -66,7 +66,7 @@ export default async function GuidesPage() {
               <article className="h-full rounded-[var(--radius-card)] border border-border bg-background p-5">
                 <h2 className="text-lg font-semibold">
                   <Link
-                    href={`/guides/${article.slug}`}
+                    href={`/articles/${article.slug}`}
                     className="rounded hover:text-primary"
                   >
                     {article.title}
@@ -90,7 +90,7 @@ export default async function GuidesPage() {
 
       {/*
         A single, clearly-labelled ad unit, placed AFTER the content and kept
-        visually separate from the guides and from any site controls. It renders
+        visually separate from the articles and from any site controls. It renders
         nothing unless ads are configured AND the visitor has consented (see
         AdSlot). AdSense is never placed on a tool page.
       */}

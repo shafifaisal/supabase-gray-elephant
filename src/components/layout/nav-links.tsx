@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export interface NavItem {
@@ -7,7 +8,7 @@ export interface NavItem {
 
 export const primaryNav: NavItem[] = [
   { href: "/tools", label: "Tools" },
-  { href: "/guides", label: "Guides" },
+  { href: "/articles", label: "Articles" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
@@ -46,7 +47,15 @@ export function Wordmark() {
       href="/"
       className="flex items-center gap-2 rounded-md font-bold tracking-tight text-foreground transition-colors hover:text-primary"
     >
-      <BrandMark className="h-6 w-6 text-primary" />
+      <Image
+        src="/logo.png"
+        alt=""
+        width={64}
+        height={64}
+        priority
+        className="h-8 w-8 object-contain"
+        aria-hidden="true"
+      />
       <span>iPassGenerator</span>
     </Link>
   );

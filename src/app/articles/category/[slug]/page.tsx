@@ -26,8 +26,8 @@ export async function generateMetadata({
     title: category.name,
     description:
       category.description ||
-      `All ${siteConfig.name} guides filed under ${category.name}.`,
-    alternates: { canonical: `/guides/category/${category.slug}` },
+      `All ${siteConfig.name} articles filed under ${category.name}.`,
+    alternates: { canonical: `/articles/category/${category.slug}` },
   };
 }
 
@@ -62,8 +62,8 @@ export default async function CategoryPage({
           </li>
           <li aria-hidden="true">/</li>
           <li>
-            <Link href="/guides" className="hover:text-foreground">
-              Guides
+            <Link href="/articles" className="hover:text-foreground">
+              Articles
             </Link>
           </li>
         </ol>
@@ -80,7 +80,7 @@ export default async function CategoryPage({
 
       {articles.length === 0 ? (
         <p className="mt-10 rounded-[var(--radius-card)] border border-dashed border-border bg-secondary/40 p-8 text-center text-sm text-muted-foreground">
-          No published guides in this category yet.
+          No published articles in this category yet.
         </p>
       ) : (
         <ul className="mt-10 grid gap-6 sm:grid-cols-2">
@@ -89,7 +89,7 @@ export default async function CategoryPage({
               <article className="h-full rounded-[var(--radius-card)] border border-border bg-background p-5">
                 <h2 className="text-lg font-semibold">
                   <Link
-                    href={`/guides/${article.slug}`}
+                    href={`/articles/${article.slug}`}
                     className="rounded hover:text-primary"
                   >
                     {article.title}

@@ -168,7 +168,7 @@ export function ArticleEditor({
             aria-describedby="slug-hint"
           />
           <p id="slug-hint" className="mt-1 text-xs text-muted-foreground">
-            Public URL: /guides/{slug || "…"}
+            Public URL: /articles/{slug || "…"}
           </p>
           {state.fieldErrors?.slug ? (
             <p className="mt-1 text-sm text-danger">{state.fieldErrors.slug}</p>

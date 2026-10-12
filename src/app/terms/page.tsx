@@ -78,7 +78,7 @@ export default async function TermsPage() {
 
       <LegalSection id="content">Content and originality</LegalSection>
       <p>
-        The written guides and explanations on this site are original work. The
+        The written articles and explanations on this site are original work. The
         passphrase generator uses the EFF large word list, used under its stated
         licence, and the strength checker uses the open-source zxcvbn algorithm
         through a maintained port. See the{" "}

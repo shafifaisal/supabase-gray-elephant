@@ -53,7 +53,7 @@ export async function createCategoryAction(
   });
 
   revalidatePath("/admin/categories");
-  revalidatePath("/guides");
+  revalidatePath("/articles");
 
   return { success: true };
 }
@@ -79,7 +79,7 @@ export async function deleteCategoryAction(formData: FormData): Promise<void> {
   }
 
   revalidatePath("/admin/categories");
-  revalidatePath("/guides");
+  revalidatePath("/articles");
 
   redirect("/admin/categories?deleted=1");
 }

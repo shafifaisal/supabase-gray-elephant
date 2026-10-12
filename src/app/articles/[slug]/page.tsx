@@ -23,8 +23,8 @@ function resolveMetadata(article: ArticleRow) {
   const description =
     article.meta_description ||
     article.excerpt ||
-    `${article.title} — a practical guide from ${siteConfig.name}.`;
-  const url = absoluteUrl(`/guides/${article.slug}`);
+    `${article.title} — a practical article from ${siteConfig.name}.`;
+  const url = absoluteUrl(`/articles/${article.slug}`);
 
   return { seoTitle, description, url };
 }
@@ -77,7 +77,7 @@ export async function generateMetadata({
 
   if (!article) {
     return {
-      title: "Guide not found",
+      title: "Article not found",
       robots: { index: false, follow: false },
     };
   }
@@ -88,7 +88,7 @@ export async function generateMetadata({
     title: seoTitle,
     description,
     alternates: {
-      canonical: article.canonical_url || `/guides/${article.slug}`,
+      canonical: article.canonical_url || `/articles/${article.slug}`,
     },
     openGraph: {
       type: "article",
@@ -120,7 +120,7 @@ export async function generateMetadata({
  * Publishing calls `revalidatePath`, so a newly published article is visible
  * immediately. RLS guarantees a draft can never render, even if guessed.
  */
-export default async function GuidePage({
+export default async function ArticlePage({
   params,
 }: {
   params: Promise<{ slug: string }>;
@@ -139,8 +139,8 @@ export default async function GuidePage({
 
   const breadcrumb = breadcrumbNode([
     { name: "Home", path: "/" },
-    { name: "Guides", path: "/guides" },
-    { name: article.title, path: `/guides/${article.slug}` },
+    { name: "Articles", path: "/articles" },
+    { name: article.title, path: `/articles/${article.slug}` },
   ]);
 
   return (
@@ -161,8 +161,8 @@ export default async function GuidePage({
           </li>
           <li aria-hidden="true">/</li>
           <li>
-            <Link href="/guides" className="hover:text-foreground">
-              Guides
+            <Link href="/articles" className="hover:text-foreground">
+              Articles
             </Link>
           </li>
         </ol>
@@ -241,7 +241,7 @@ function RelatedArticles({ article }: { article: ArticleRow }) {
         {related.map((item) => (
           <li key={item.id}>
             <Link
-              href={`/guides/${item.slug}`}
+              href={`/articles/${item.slug}`}
               className="text-sm text-primary underline underline-offset-2"
             >
               {item.title}

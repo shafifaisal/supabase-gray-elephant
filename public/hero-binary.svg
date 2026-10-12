@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Digital binary code and data streams">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#03050c"/>
+      <stop offset="0.45" stop-color="#071431"/>
+      <stop offset="0.75" stop-color="#051029"/>
+      <stop offset="1" stop-color="#03050c"/>
+    </linearGradient>
+
+    <radialGradient id="glowA" cx="0.18" cy="0.28" r="0.55">
+      <stop offset="0" stop-color="#2563eb" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#2563eb" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="0.85" cy="0.72" r="0.5">
+      <stop offset="0" stop-color="#06b6d4" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#06b6d4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowC" cx="0.5" cy="1" r="0.7">
+      <stop offset="0" stop-color="#1d4ed8" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#1d4ed8" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="stream" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#38bdf8" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+    </linearGradient>
+
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="soft" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="2.5"/>
+    </filter>
+
+    <pattern id="binary" width="200" height="150" patternUnits="userSpaceOnUse">
+      <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" letter-spacing="3">
+        <text x="0" y="22" fill="#38bdf8" fill-opacity="0.34">0110100110011010</text>
+        <text x="22" y="42" fill="#22d3ee" fill-opacity="0.22">1101001011001011</text>
+        <text x="-8" y="62" fill="#60a5fa" fill-opacity="0.30">1010110011101001</text>
+        <text x="34" y="82" fill="#38bdf8" fill-opacity="0.20">0111010010101100</text>
+        <text x="10" y="102" fill="#22d3ee" fill-opacity="0.30">1100101101001011</text>
+        <text x="-14" y="122" fill="#60a5fa" fill-opacity="0.22">1011010011010010</text>
+        <text x="28" y="142" fill="#38bdf8" fill-opacity="0.28">0110101100101101</text>
+      </g>
+    </pattern>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#binary)" opacity="0.75"/>
+  <rect width="1920" height="1080" fill="url(#binary)" opacity="0.35" transform="translate(13 7) skewY(-1)"/>
+
+  <rect width="1920" height="1080" fill="url(#glowA)"/>
+  <rect width="1920" height="1080" fill="url(#glowB)"/>
+  <rect width="1920" height="1080" fill="url(#glowC)"/>
+
+  <g fill="none" stroke-linecap="round" filter="url(#glow)">
+    <path d="M-50 720 C 300 600, 560 820, 900 720 S 1500 590, 1980 730" stroke="#22d3ee" stroke-width="3" stroke-opacity="0.65"/>
+    <path d="M-50 800 C 340 700, 620 900, 980 800 S 1540 680, 1980 820" stroke="#3b82f6" stroke-width="2.5" stroke-opacity="0.5"/>
+    <path d="M-50 640 C 320 560, 600 700, 940 630 S 1560 520, 1980 650" stroke="#60a5fa" stroke-width="1.8" stroke-opacity="0.4"/>
+  </g>
+
+  <g stroke="url(#stream)" stroke-width="2">
+    <line x1="120" y1="0" x2="120" y2="1080" stroke-dasharray="5 14"/>
+    <line x1="430" y1="0" x2="430" y2="1080" stroke-dasharray="4 16"/>
+    <line x1="760" y1="0" x2="760" y2="1080" stroke-dasharray="6 18"/>
+    <line x1="1120" y1="0" x2="1120" y2="1080" stroke-dasharray="4 14"/>
+    <line x1="1480" y1="0" x2="1480" y2="1080" stroke-dasharray="5 16"/>
+    <line x1="1780" y1="0" x2="1780" y2="1080" stroke-dasharray="4 18"/>
+  </g>
+
+  <g fill="#7dd3fc" filter="url(#glow)">
+    <circle cx="180" cy="240" r="2.4" opacity="0.8"/>
+    <circle cx="520" cy="470" r="1.8" opacity="0.6"/>
+    <circle cx="880" cy="180" r="2" opacity="0.7"/>
+    <circle cx="1250" cy="560" r="2.6" opacity="0.75"/>
+    <circle cx="1620" cy="320" r="1.8" opacity="0.6"/>
+    <circle cx="300" cy="860" r="2.2" opacity="0.65"/>
+    <circle cx="1040" cy="900" r="1.6" opacity="0.55"/>
+    <circle cx="1520" cy="880" r="2.4" opacity="0.7"/>
+    <circle cx="700" cy="360" r="1.5" opacity="0.5"/>
+    <circle cx="1720" cy="620" r="1.9" opacity="0.6"/>
+  </g>
+
+  <g fill="#bae6fd" fill-opacity="0.55" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" filter="url(#soft)">
+    <text x="1500" y="240" font-size="26">01</text>
+    <text x="260" y="620" font-size="22">10</text>
+    <text x="1180" y="760" font-size="24">11</text>
+  </g>
+</svg>

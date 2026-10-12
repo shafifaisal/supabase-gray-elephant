@@ -1,6 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
 
-import { BrandMark } from "@/components/layout/nav-links";
 import { getBrandName, getFooterText } from "@/lib/settings/public";
 
 /**
@@ -32,7 +32,7 @@ export async function Footer() {
     {
       title: "Learn",
       links: [
-        { href: "/guides", label: "Guides" },
+        { href: "/articles", label: "Articles" },
         { href: "/about", label: "About" },
         { href: "/contact", label: "Contact" },
       ],
@@ -53,7 +53,14 @@ export async function Footer() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <div className="flex items-center gap-2 font-bold">
-              <BrandMark className="h-6 w-6 text-primary" />
+              <Image
+                src="/logo.png"
+                alt=""
+                width={64}
+                height={64}
+                className="h-8 w-8 object-contain"
+                aria-hidden="true"
+              />
               <span>{brandName}</span>
             </div>
             <p className="mt-3 max-w-xs text-sm text-muted-foreground">
