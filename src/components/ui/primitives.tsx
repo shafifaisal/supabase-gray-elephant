@@ -10,7 +10,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`rounded-[var(--radius-card)] border border-border bg-background p-6 shadow-sm ${className}`}
+      className={`relative rounded-[var(--radius-card)] border border-border bg-background p-6 shadow-sm ${className}`}
     >
       {children}
     </div>
