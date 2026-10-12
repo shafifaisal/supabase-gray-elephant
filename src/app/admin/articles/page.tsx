@@ -127,7 +127,7 @@ export default async function AdminArticlesPage({
         </ul>
       )}
 
-      <section className="mt-10 rounded-[var(--radius-card)] border border-border bg-background p-5">
+      <section className="mt-10 rounded-[var(--radius-card)] border border-border bg-background p-9">
         <h2 className="text-sm font-semibold">Editorial plan</h2>
         <p className="mt-1 text-xs text-muted-foreground">
           Articles must be original, reviewed and accurate. Nothing publishes

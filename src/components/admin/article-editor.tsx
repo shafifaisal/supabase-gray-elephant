@@ -263,8 +263,8 @@ export function ArticleEditor({
         </p>
       ) : null}
 
-      <fieldset className="space-y-4 rounded-[var(--radius-card)] border border-border bg-background p-5">
-        <legend className="px-1 text-sm font-semibold">Content</legend>
+      <fieldset className="space-y-4 rounded-[var(--radius-card)] border border-border bg-background p-9">
+        <legend className="sr-only">Content</legend>
 
         <div>
           <label htmlFor="title" className={labelClasses}>
@@ -368,8 +368,8 @@ export function ArticleEditor({
         ) : null}
       </fieldset>
 
-      <fieldset className="space-y-4 rounded-[var(--radius-card)] border border-border bg-background p-5">
-        <legend className="px-1 text-sm font-semibold">Organisation</legend>
+      <fieldset className="space-y-4 rounded-[var(--radius-card)] border border-border bg-background p-9">
+        <legend className="sr-only">Organisation</legend>
 
         <div>
           <label htmlFor="category_id" className={labelClasses}>
@@ -401,8 +401,8 @@ export function ArticleEditor({
         </label>
       </fieldset>
 
-      <fieldset className="space-y-4 rounded-[var(--radius-card)] border border-border bg-background p-5">
-        <legend className="px-1 text-sm font-semibold">Featured image</legend>
+      <fieldset className="space-y-4 rounded-[var(--radius-card)] border border-border bg-background p-9">
+        <legend className="sr-only">Featured image</legend>
 
         {/* The stored reference. Empty means no featured image. */}
         <input type="hidden" name="featured_image_id" value={image?.id ?? ""} />
@@ -518,8 +518,8 @@ export function ArticleEditor({
         ) : null}
       </fieldset>
 
-      <fieldset className="space-y-4 rounded-[var(--radius-card)] border border-border bg-background p-5">
-        <legend className="px-1 text-sm font-semibold">SEO</legend>
+      <fieldset className="space-y-4 rounded-[var(--radius-card)] border border-border bg-background p-9">
+        <legend className="sr-only">SEO</legend>
 
         <div>
           <label htmlFor="seo_title" className={labelClasses}>

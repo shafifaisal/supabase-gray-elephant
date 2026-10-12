@@ -49,7 +49,7 @@ export default async function SeoPage() {
         Indexing status and metadata quality across published content.
       </p>
 
-      <section className="mt-6 rounded-[var(--radius-card)] border border-border bg-background p-5">
+      <section className="mt-6 rounded-[var(--radius-card)] border border-border bg-background p-9">
         <h2 className="text-sm font-semibold">Site defaults</h2>
         <dl className="mt-3 space-y-2 text-sm">
           <div className="flex justify-between gap-3">
@@ -144,7 +144,7 @@ export default async function SeoPage() {
         )}
       </section>
 
-      <section className="mt-6 rounded-[var(--radius-card)] border border-border bg-background p-5">
+      <section className="mt-6 rounded-[var(--radius-card)] border border-border bg-background p-9">
         <h2 className="text-sm font-semibold">Advertising readiness</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           AdSense is optional and off by default. It runs only when configured

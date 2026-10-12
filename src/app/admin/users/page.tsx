@@ -75,7 +75,7 @@ export default async function UsersPage({
         {users.map((user) => (
           <li
             key={user.id}
-            className="rounded-[var(--radius-card)] border border-border bg-background p-4"
+            className="rounded-[var(--radius-card)] border border-border bg-background p-9"
           >
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0">
@@ -152,7 +152,7 @@ export default async function UsersPage({
         ))}
       </ul>
 
-      <div className="mt-8 rounded-[var(--radius-card)] border border-border bg-secondary/40 p-5">
+      <div className="mt-8 rounded-[var(--radius-card)] border border-border bg-secondary/40 p-9">
         <h2 className="text-sm font-semibold">What each role can do</h2>
         <dl className="mt-3 space-y-2 text-sm text-muted-foreground">
           <div>

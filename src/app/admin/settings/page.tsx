@@ -97,7 +97,7 @@ export default async function SettingsPage() {
         environment variables, never in this table.
       </p>
 
-      <div className="mt-6 rounded-[var(--radius-card)] border border-warning/40 bg-warning/10 p-5">
+      <div className="mt-6 rounded-[var(--radius-card)] border border-warning/40 bg-warning/10 p-6">
         <h2 className="text-sm font-semibold text-warning">
           Never store credentials here
         </h2>

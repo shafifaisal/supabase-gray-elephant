@@ -34,7 +34,7 @@ export function CategoryManager({
 
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-2">
-      <section className="rounded-[var(--radius-card)] border border-border bg-background p-5">
+      <section className="rounded-[var(--radius-card)] border border-border bg-background p-9">
         <h2 className="text-sm font-semibold">Add a category</h2>
 
         <form action={formAction} className="mt-4 space-y-4">
@@ -116,7 +116,7 @@ export function CategoryManager({
         </form>
       </section>
 
-      <section className="rounded-[var(--radius-card)] border border-border bg-background p-5">
+      <section className="rounded-[var(--radius-card)] border border-border bg-background p-9">
         <h2 className="text-sm font-semibold">
           Existing ({categories.length})
         </h2>

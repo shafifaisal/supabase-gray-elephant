@@ -89,7 +89,7 @@ export default async function AdminDashboardPage() {
         })}
       </div>
 
-      <div className="mt-10 rounded-[var(--radius-card)] border border-border bg-secondary/40 p-5">
+      <div className="mt-10 rounded-[var(--radius-card)] border border-border bg-secondary/40 p-9">
         <h2 className="text-sm font-semibold uppercase tracking-wide">
           Session details
         </h2>

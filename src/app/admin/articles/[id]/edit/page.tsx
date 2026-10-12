@@ -118,7 +118,7 @@ export default async function EditArticlePage({
       />
 
       {canPublish ? (
-        <section className="rounded-[var(--radius-card)] border border-border bg-background p-5">
+        <section className="rounded-[var(--radius-card)] border border-border bg-background p-9">
           <h2 className="text-sm font-semibold">Publishing</h2>
           <p className="mt-1 text-xs text-muted-foreground">
             Publishing, scheduling and archiving are editor actions. Every change
@@ -215,7 +215,7 @@ export default async function EditArticlePage({
         </section>
       ) : null}
 
-      <section className="rounded-[var(--radius-card)] border border-border bg-background p-5">
+      <section className="rounded-[var(--radius-card)] border border-border bg-background p-9">
         <h2 className="text-sm font-semibold">Revisions</h2>
         <p className="mt-1 text-xs text-muted-foreground">
           Every save appends an immutable snapshot. Revisions cannot be edited
@@ -244,7 +244,7 @@ export default async function EditArticlePage({
         )}
       </section>
 
-      <section className="rounded-[var(--radius-card)] border border-border bg-background p-5">
+      <section className="rounded-[var(--radius-card)] border border-border bg-background p-9">
         <h2 className="text-sm font-semibold">Public URL</h2>
         <p className="mt-1 font-mono text-sm text-muted-foreground">
           /articles/{article.slug}
@@ -265,7 +265,7 @@ export default async function EditArticlePage({
       </section>
 
       {canDelete ? (
-        <section className="rounded-[var(--radius-card)] border border-danger/40 bg-danger/5 p-5">
+        <section className="rounded-[var(--radius-card)] border border-danger/40 bg-danger/5 p-9">
           <h2 className="text-sm font-semibold text-danger">Delete article</h2>
           <p className="mt-1 text-xs text-muted-foreground">
             This permanently removes the article and its revisions. Archiving is

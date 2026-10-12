@@ -47,7 +47,7 @@ export function SettingsManager({
           return (
             <div
               key={preset.key}
-              className="rounded-[var(--radius-card)] border border-border bg-background p-4"
+              className="rounded-[var(--radius-card)] border border-border bg-background p-6"
             >
               <label
                 htmlFor={`setting-${preset.key}`}

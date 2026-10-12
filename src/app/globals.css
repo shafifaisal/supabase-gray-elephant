@@ -29,7 +29,8 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  --radius-card: 0.875rem;
+  /* Matches Tailwind's `rounded-sm` (0.25rem) so cards share one radius. */
+  --radius-card: 0.25rem;
 }
 
 @media (prefers-color-scheme: dark) {

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import { CategoryManager } from "@/components/admin/category-manager";
 import { requireRole } from "@/lib/auth/session";
@@ -42,12 +41,6 @@ export default async function CategoriesPage({
         action={createCategoryAction}
         categories={categories}
       />
-
-      <p className="mt-6 text-xs text-muted-foreground">
-        <Link href="/admin/articles" className="underline underline-offset-2">
-          Back to articles
-        </Link>
-      </p>
     </div>
   );
 }
