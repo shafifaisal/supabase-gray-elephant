@@ -89,7 +89,7 @@ export default async function AdminArticlesPage({
           {articles.map((article) => (
             <li
               key={article.id}
-              className="rounded-[var(--radius-card)] border border-border bg-background p-4"
+              className="rounded-[var(--radius-card)] border border-border bg-background p-9"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
