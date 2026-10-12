@@ -36,16 +36,6 @@ export default async function AdminLayout({
       <div className="container-page py-8">
         <div className="flex flex-col gap-6 lg:flex-row">
           <aside className="lg:w-60 lg:shrink-0">
-            <div className="mb-4 hidden lg:block">
-              <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                Signed in
-              </p>
-              <p className="mt-1 truncate text-sm font-medium">{user.email}</p>
-              <span className="mt-1 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary uppercase">
-                {user.role}
-              </span>
-            </div>
-
             <nav aria-label="Admin sections">
               <ul className="flex flex-wrap gap-1 lg:flex-col">
                 {NAV.map((item) => {
