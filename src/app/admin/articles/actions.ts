@@ -80,6 +80,7 @@ export async function createArticleAction(
   formData: FormData,
 ): Promise<ActionState> {
   const user = await requireRole("author");
+  const canPublish = roleAtLeast(user.role, "editor");
 
   const parsed = parseForm(formData);
   if (!parsed.success) {
@@ -94,8 +95,13 @@ export async function createArticleAction(
 
   const { body_html, excerpt } = prepareArticleContent(input);
 
+  // An editor/admin who chose "Save and publish".
+  const publishNow = canPublish && formData.get("intent") === "publish";
+
   const supabase = await createClient();
 
+  // Insert as a draft regardless: the insert policy only permits draft/in_review
+  // rows. Publishing is a separate, editor-only update (see below).
   const { data, error } = await supabase
     .from("articles")
     .insert({
@@ -122,15 +128,39 @@ export async function createArticleAction(
     return { error: `Could not create the article: ${error.message}` };
   }
 
+  if (publishNow) {
+    const { error: publishError } = await supabase
+      .from("articles")
+      .update({ status: "published", published_at: new Date().toISOString() })
+      .eq("id", data.id);
+
+    if (publishError) {
+      // The draft exists; send the editor to it rather than lose the work.
+      redirect(
+        `/admin/articles/${data.id}/edit?error=${encodeURIComponent(
+          `Draft saved, but publishing failed: ${publishError.message}`,
+        )}`,
+      );
+    }
+  }
+
   await audit({
     action: "article.created",
     entityType: "article",
     entityId: data.id,
     actorId: user.id,
-    after: { slug: input.slug, title: input.title, status: "draft" },
+    after: {
+      slug: input.slug,
+      title: input.title,
+      status: publishNow ? "published" : "draft",
+    },
   });
 
-  redirect(`/admin/articles/${data.id}/edit?created=1`);
+  redirect(
+    publishNow
+      ? `/admin/articles/${data.id}/edit?saved=published`
+      : `/admin/articles/${data.id}/edit?created=1`,
+  );
 }
 
 /** Saves edits to an existing article and appends a revision. */
@@ -139,6 +169,7 @@ export async function updateArticleAction(
   formData: FormData,
 ): Promise<ActionState> {
   const user = await requireRole("author");
+  const canPublish = roleAtLeast(user.role, "editor");
 
   const id = formData.get("id");
   if (typeof id !== "string" || id.length === 0) {
@@ -161,28 +192,38 @@ export async function updateArticleAction(
 
   const { body_html, excerpt } = prepareArticleContent(input);
 
+  // An editor/admin who chose "Save and publish" on a not-yet-published article.
+  const publishNow =
+    canPublish && formData.get("intent") === "publish" && existing.status !== "published";
+
   const supabase = await createClient();
+
+  const patch: Record<string, unknown> = {
+    slug: input.slug,
+    title: input.title,
+    excerpt,
+    body_md: input.body_md,
+    body_html,
+    category_id: input.category_id,
+    seo_title: input.seo_title || null,
+    meta_description: input.meta_description || null,
+    og_title: input.og_title || null,
+    og_description: input.og_description || null,
+    canonical_url: input.canonical_url || null,
+    is_noindex: input.is_noindex,
+    featured_image_id: input.featured_image_id,
+  };
+
+  if (publishNow) {
+    patch.status = "published";
+    if (!existing.published_at) {
+      patch.published_at = new Date().toISOString();
+    }
+  }
 
   // Authors may only modify their own draft or in-review article. RLS enforces
   // this too; the read above already proves visibility.
-  const { error } = await supabase
-    .from("articles")
-    .update({
-      slug: input.slug,
-      title: input.title,
-      excerpt,
-      body_md: input.body_md,
-      body_html,
-      category_id: input.category_id,
-      seo_title: input.seo_title || null,
-      meta_description: input.meta_description || null,
-      og_title: input.og_title || null,
-      og_description: input.og_description || null,
-      canonical_url: input.canonical_url || null,
-      is_noindex: input.is_noindex,
-      featured_image_id: input.featured_image_id,
-    })
-    .eq("id", id);
+  const { error } = await supabase.from("articles").update(patch).eq("id", id);
 
   if (error) {
     return { error: `Could not save the article: ${error.message}` };
@@ -211,18 +252,22 @@ export async function updateArticleAction(
     excerpt,
     body_md: input.body_md,
     body_html,
-    status: existing.status,
+    status: publishNow ? "published" : existing.status,
     change_note: String(formData.get("change_note") ?? "").slice(0, 200) || null,
     changed_by: user.id,
   });
 
   await audit({
-    action: "article.updated",
+    action: publishNow ? "article.published" : "article.updated",
     entityType: "article",
     entityId: id,
     actorId: user.id,
-    before: { slug: existing.slug, title: existing.title },
-    after: { slug: input.slug, title: input.title },
+    before: { slug: existing.slug, title: existing.title, status: existing.status },
+    after: {
+      slug: input.slug,
+      title: input.title,
+      status: publishNow ? "published" : existing.status,
+    },
   });
 
   revalidatePath("/admin/articles");
@@ -235,6 +280,9 @@ export async function updateArticleAction(
   revalidatePath(`/articles/${input.slug}`);
   if (existing.slug !== input.slug) {
     revalidatePath(`/articles/${existing.slug}`);
+  }
+  if (publishNow) {
+    revalidatePath("/sitemap.xml");
   }
 
   return { success: true };

@@ -598,11 +598,21 @@ export function ArticleEditor({
       </fieldset>
 
       <div className="flex flex-wrap items-center gap-3">
-        <ActionButton>{values.id ? "Save changes" : "Create draft"}</ActionButton>
+        <ActionButton
+          name="intent"
+          value="save"
+          variant={canPublish && status !== "published" ? "ghost" : "primary"}
+        >
+          {values.id ? "Save changes" : "Create draft"}
+        </ActionButton>
+
+        {canPublish && status !== "published" ? (
+          <ActionButton name="intent" value="publish">Save and publish</ActionButton>
+        ) : null}
 
         {canPublish && values.id ? (
           <span className="text-xs text-muted-foreground">
-            Use the publishing panel to change status.
+            Publishing, scheduling and archiving are also available below.
           </span>
         ) : null}
       </div>

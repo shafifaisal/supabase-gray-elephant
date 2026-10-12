@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { ArticleEditor } from "@/components/admin/article-editor";
-import { requireRole } from "@/lib/auth/session";
+import { roleAtLeast, requireRole } from "@/lib/auth/session";
 import { getCategories } from "@/lib/content/articles";
 
 import { createArticleAction } from "../actions";
@@ -12,13 +12,13 @@ export const metadata: Metadata = {
 };
 
 export default async function NewArticlePage() {
-  await requireRole("author");
+  const user = await requireRole("author");
   const categories = await getCategories();
 
   return (
     <ArticleEditor
       action={createArticleAction}
-      canPublish={false}
+      canPublish={roleAtLeast(user.role, "editor")}
       status="draft"
       categories={categories.map((c) => ({ id: c.id, name: c.name }))}
       values={{

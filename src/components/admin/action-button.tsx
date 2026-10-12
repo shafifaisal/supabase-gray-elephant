@@ -6,9 +6,13 @@ import { useFormStatus } from "react-dom";
 export function ActionButton({
   children,
   variant = "primary",
+  name,
+  value,
 }: {
   children: React.ReactNode;
   variant?: "primary" | "danger" | "ghost";
+  name?: string;
+  value?: string;
 }) {
   const { pending } = useFormStatus();
 
@@ -23,7 +27,13 @@ export function ActionButton({
   }[variant];
 
   return (
-    <button type="submit" disabled={pending} className={`${base} ${styles}`}>
+    <button
+      type="submit"
+      name={name}
+      value={value}
+      disabled={pending}
+      className={`${base} ${styles}`}
+    >
       {pending ? "Working…" : children}
     </button>
   );
