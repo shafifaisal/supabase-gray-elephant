@@ -69,9 +69,10 @@ describe("generatePassphrase", () => {
     for (const separator of ["-", ".", "_", " ", ""]) {
       const result = generatePassphrase({ ...BASE, wordCount: 4, separator });
       expect(result.ok).toBe(true);
-      if (separator) {
-        expect(result.value.split(separator)).toHaveLength(4);
-      }
+      // Assert the exact join rather than splitting on the separator: the
+      // wordlist intentionally contains hyphenated words, so splitting by "-"
+      // can yield more parts than there are words and flake.
+      expect(result.value).toBe(result.words.join(separator));
     }
   });
 
