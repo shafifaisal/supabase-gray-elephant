@@ -7,7 +7,7 @@
  * No phrases, no predictable patterns, no PRNG seeded from the clock.
  */
 
-import { randomInt, secureShuffle } from "./random";
+import { randomInt, secureSample } from "./random";
 import { BITS_PER_WORD, WORDLIST_SIZE, WORDS } from "./wordlist";
 
 export interface PassphraseOptions {
@@ -81,9 +81,10 @@ export function generatePassphrase(
   let chosen: string[];
 
   if (unique) {
-    // Fisher–Yates style partial shuffle guarantees a uniform random subset
-    // without rejection sampling.
-    chosen = secureShuffle(WORDS).slice(0, wordCount);
+    // Partial Fisher–Yates over only the positions we need, so a 8-word
+    // passphrase costs 8 CSPRNG draws rather than one per word in the list.
+    // Uniform: every subset of `wordCount` words is equally likely.
+    chosen = secureSample(WORDS, wordCount);
   } else {
     chosen = [];
     for (let i = 0; i < wordCount; i += 1) {

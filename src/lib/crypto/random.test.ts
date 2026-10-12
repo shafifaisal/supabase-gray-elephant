@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   randomChoice,
   randomInt,
+  secureSample,
   secureShuffle,
 } from "@/lib/crypto/random";
 
@@ -142,6 +143,80 @@ describe("secureShuffle", () => {
       // CSPRNG-driven Fisher-Yates shuffle.
       expect(count).toBeGreaterThan(expected * 0.85);
       expect(count).toBeLessThan(expected * 1.15);
+    }
+  });
+});
+
+describe("secureSample", () => {
+  it("does not mutate the input", () => {
+    const input = [1, 2, 3, 4, 5];
+    const copy = [...input];
+    secureSample(input, 3);
+    expect(input).toEqual(copy);
+  });
+
+  it("returns the requested number of distinct elements", () => {
+    const input = Array.from({ length: 100 }, (_, i) => i);
+    const result = secureSample(input, 8);
+    expect(result).toHaveLength(8);
+    expect(new Set(result).size).toBe(8);
+    for (const value of result) expect(input).toContain(value);
+  });
+
+  it("handles the empty, zero-count and full-count edge cases", () => {
+    expect(secureSample([], 0)).toEqual([]);
+    expect(secureSample(["a", "b"], 0)).toEqual([]);
+    expect([...secureSample(["a"], 1)]).toEqual(["a"]);
+    // count === items.length must behave like a full shuffle.
+    const full = secureSample([1, 2, 3, 4, 5], 5);
+    expect(full).toHaveLength(5);
+    expect([...full].sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it("rejects invalid counts", () => {
+    expect(() => secureSample([1, 2, 3], -1)).toThrow(RangeError);
+    expect(() => secureSample([1, 2, 3], 1.5)).toThrow(RangeError);
+    expect(() => secureSample([1, 2, 3], 4)).toThrow(RangeError);
+  });
+
+  /**
+   * The whole point of the rewrite: the sample must be unbiased, not merely
+   * distinct. If selection favoured early positions this would fail.
+   */
+  it("selects each element with equal probability", () => {
+    const size = 6;
+    const count = 2;
+    const input = Array.from({ length: size }, (_, i) => i);
+    const runs = 12_000;
+    const counts = new Array(size).fill(0) as number[];
+
+    for (let i = 0; i < runs; i += 1) {
+      for (const value of secureSample(input, count)) counts[value] += 1;
+    }
+
+    // Each element should be drawn count/size of the time: 4,000.
+    const expected = (runs * count) / size;
+    for (const observed of counts) {
+      expect(observed).toBeGreaterThan(expected * 0.92);
+      expect(observed).toBeLessThan(expected * 1.08);
+    }
+  });
+
+  it("preserves the full permutation distribution when count equals length", () => {
+    const input = [0, 1, 2];
+    const seen = new Map<string, number>();
+    const runs = 6000;
+
+    for (let i = 0; i < runs; i += 1) {
+      const key = secureSample(input, 3).join(",");
+      seen.set(key, (seen.get(key) ?? 0) + 1);
+    }
+
+    expect(seen.size).toBe(6);
+    const expected = runs / 6;
+    for (const observed of seen.values()) {
+      expect(observed).toBeGreaterThan(expected * 0.85);
+      expect(observed).toBeLessThan(expected * 1.15);
     }
   });
 });

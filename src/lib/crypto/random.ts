@@ -101,3 +101,43 @@ export function secureShuffle<T>(items: readonly T[]): T[] {
 
   return result;
 }
+
+/**
+ * Uniformly samples `count` distinct elements, in random order.
+ *
+ * A PARTIAL Fisher–Yates: only the first `count` positions are shuffled, so
+ * drawing 8 words from a 7,776-word list costs 8 CSPRNG draws instead of 7,775.
+ * Selecting uniformly from the untouched tail at each step is what keeps the
+ * result unbiased — the remaining elements stay equally likely at every draw.
+ *
+ * Distributionally identical to `secureShuffle(items).slice(0, count)`, but
+ * `secureShuffle` copies and shuffles the whole list, which is ~1,000x more
+ * expensive for a small sample. Prefer this one whenever `count` is much
+ * smaller than `items.length`.
+ *
+ * The input array is NOT mutated.
+ */
+export function secureSample<T>(items: readonly T[], count: number): T[] {
+  if (!Number.isInteger(count) || count < 0) {
+    throw new RangeError("count must be a non-negative integer");
+  }
+
+  if (count > items.length) {
+    throw new RangeError("count must not exceed the number of items");
+  }
+
+  const pool = [...items];
+  const picked: T[] = [];
+
+  for (let i = 0; i < count; i += 1) {
+    // Pick uniformly from the not-yet-selected tail [i, pool.length).
+    // `pool.length - i` is always >= 1 here because count <= items.length.
+    const j = i + randomInt(pool.length - i);
+    const tmp = pool[i]!;
+    pool[i] = pool[j]!;
+    pool[j] = tmp;
+    picked.push(pool[i]!);
+  }
+
+  return picked;
+}
