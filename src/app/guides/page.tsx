@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AdSlot } from "@/components/ads/ad-slot";
-import { getCategories, getPublishedArticles } from "@/lib/content/articles";
+import {
+  getPublicCategories,
+  getPublishedArticles,
+} from "@/lib/content/articles";
 import { getAdsConfig } from "@/lib/ads/server";
 import { formatDate } from "@/lib/format";
 
@@ -16,7 +19,7 @@ export const metadata: Metadata = {
 export default async function GuidesPage() {
   const [articles, categories, ads] = await Promise.all([
     getPublishedArticles(),
-    getCategories(),
+    getPublicCategories(),
     getAdsConfig(),
   ]);
 

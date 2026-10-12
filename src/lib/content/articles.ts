@@ -4,12 +4,48 @@
  * Every function goes through the request-scoped Supabase client, so Row Level
  * Security applies: an anonymous caller physically cannot read a draft, because
  * the database refuses the row rather than the application filtering it out.
+ *
+ * PUBLIC READS FAIL SOFT, ADMIN READS DO NOT
+ * -----------------------------------------
+ * The public getters are called from PRERENDERED routes (`/guides` is rendered
+ * at build time), so a throw there fails the whole deployment. That is exactly
+ * what happened when the `articles` table was missing from the configured
+ * project: the build died instead of serving an empty guides page.
+ *
+ * A public read therefore degrades to an empty result and renders the page's
+ * existing empty state. The error is logged, never swallowed, so the
+ * misconfiguration stays visible in the build and runtime logs.
+ *
+ * Admin getters keep throwing on purpose: inside the CMS a silent failure would
+ * hide the problem from the only people able to fix it.
  */
 
 import { renderMarkdown, markdownToPlainText } from "@/lib/content/markdown";
 import { createClient } from "@/lib/supabase/server";
 import { createBuildClient } from "@/lib/supabase/build";
 import type { ArticleStatus } from "@/lib/validation/article";
+
+/**
+ * Runs a public read, degrading to `fallback` instead of throwing.
+ *
+ * Logged rather than swallowed: failing softly must not mean failing silently.
+ */
+async function failSoft<T>(
+  label: string,
+  read: () => Promise<T>,
+  fallback: T,
+): Promise<T> {
+  try {
+    return await read();
+  } catch (error) {
+    console.error(
+      `[content] ${label} failed; degrading to an empty result. ` +
+        "Check that the database is reachable and migrations are applied.",
+      error,
+    );
+    return fallback;
+  }
+}
 
 export interface ArticleRow {
   id: string;
@@ -52,19 +88,25 @@ const ARTICLE_COLUMNS = "id, slug, title, excerpt, body_md, body_html, status, a
  * visitor would get. Caching is applied at the route level via `revalidate`.
  */
 export async function getPublishedArticles(limit = 50): Promise<ArticleRow[]> {
-  const supabase = createBuildClient();
+  return failSoft(
+    "getPublishedArticles",
+    async () => {
+      const supabase = createBuildClient();
 
-  const { data, error } = await supabase
-    .from("articles")
-    .select(ARTICLE_COLUMNS)
-    .eq("status", "published")
-    .eq("is_noindex", false)
-    .order("published_at", { ascending: false })
-    .limit(limit);
+      const { data, error } = await supabase
+        .from("articles")
+        .select(ARTICLE_COLUMNS)
+        .eq("status", "published")
+        .eq("is_noindex", false)
+        .order("published_at", { ascending: false })
+        .limit(limit);
 
-  if (error) throw new Error(`Failed to load articles: ${error.message}`);
+      if (error) throw new Error(`Failed to load articles: ${error.message}`);
 
-  return (data ?? []) as ArticleRow[];
+      return (data ?? []) as ArticleRow[];
+    },
+    [],
+  );
 }
 
 /**
@@ -72,38 +114,52 @@ export async function getPublishedArticles(limit = 50): Promise<ArticleRow[]> {
  *
  * Returns null rather than throwing so the page can respond 404 for both
  * "does not exist" and "not published" — never revealing that a draft exists.
+ * An unreachable database degrades to the same null, so the page 404s instead
+ * of crashing the render.
  */
 export async function getPublishedArticleBySlug(
   slug: string,
 ): Promise<ArticleRow | null> {
-  const supabase = createBuildClient();
+  return failSoft(
+    "getPublishedArticleBySlug",
+    async () => {
+      const supabase = createBuildClient();
 
-  const { data, error } = await supabase
-    .from("articles")
-    .select(ARTICLE_COLUMNS)
-    .eq("slug", slug)
-    .eq("status", "published")
-    .eq("is_noindex", false)
-    .maybeSingle<ArticleRow>();
+      const { data, error } = await supabase
+        .from("articles")
+        .select(ARTICLE_COLUMNS)
+        .eq("slug", slug)
+        .eq("status", "published")
+        .eq("is_noindex", false)
+        .maybeSingle<ArticleRow>();
 
-  if (error) throw new Error(`Failed to load article: ${error.message}`);
+      if (error) throw new Error(`Failed to load article: ${error.message}`);
 
-  return data ?? null;
+      return data ?? null;
+    },
+    null,
+  );
 }
 
 /** Slugs of every published article, used by the sitemap. */
 export async function getPublishedSlugs(): Promise<string[]> {
-  const supabase = createBuildClient();
+  return failSoft(
+    "getPublishedSlugs",
+    async () => {
+      const supabase = createBuildClient();
 
-  const { data, error } = await supabase
-    .from("articles")
-    .select("slug")
-    .eq("status", "published")
-    .eq("is_noindex", false);
+      const { data, error } = await supabase
+        .from("articles")
+        .select("slug")
+        .eq("status", "published")
+        .eq("is_noindex", false);
 
-  if (error) throw new Error(`Failed to load slugs: ${error.message}`);
+      if (error) throw new Error(`Failed to load slugs: ${error.message}`);
 
-  return (data ?? []).map((row) => row.slug);
+      return (data ?? []).map((row) => row.slug);
+    },
+    [],
+  );
 }
 
 /**
@@ -114,19 +170,32 @@ export async function getPublishedSlugs(): Promise<string[]> {
  * poll this endpoint, so it must always reflect current published content.
  */
 export async function getPublishedSlugsLive(): Promise<string[]> {
-  const supabase = createBuildClient();
+  return failSoft(
+    "getPublishedSlugsLive",
+    async () => {
+      const supabase = createBuildClient();
 
-  const { data, error } = await supabase
-    .from("articles")
-    .select("slug")
-    .eq("status", "published")
-    .eq("is_noindex", false);
+      const { data, error } = await supabase
+        .from("articles")
+        .select("slug")
+        .eq("status", "published")
+        .eq("is_noindex", false);
 
-  if (error) throw new Error(`Failed to load slugs: ${error.message}`);
+      if (error) throw new Error(`Failed to load slugs: ${error.message}`);
 
-  return (data ?? []).map((row) => row.slug);
+      return (data ?? []).map((row) => row.slug);
+    },
+    [],
+  );
 }
 
+/**
+ * Every category, in display order.
+ *
+ * STRICT on purpose — the admin CMS must fail loudly if categories cannot be
+ * loaded, otherwise an editor could silently publish without one. Public pages
+ * use `getPublicCategories()` below.
+ */
 export async function getCategories(): Promise<CategoryRow[]> {
   const supabase = createBuildClient();
 
@@ -141,36 +210,59 @@ export async function getCategories(): Promise<CategoryRow[]> {
   return (data ?? []) as CategoryRow[];
 }
 
-/** All published articles in one category. */
+/**
+ * Fail-soft category list for public pages.
+ *
+ * Same data as `getCategories()`, but a database problem hides the category
+ * chips instead of failing a prerender.
+ */
+export async function getPublicCategories(): Promise<CategoryRow[]> {
+  return failSoft("getPublicCategories", getCategories, []);
+}
+
+/**
+ * All published articles in one category.
+ *
+ * A missing category and an unreachable database both yield `category: null`,
+ * which the page turns into a real 404 — never a thrown error.
+ */
 export async function getArticlesByCategory(
   categorySlug: string,
 ): Promise<{ category: CategoryRow | null; articles: ArticleRow[] }> {
-  const supabase = createBuildClient();
+  return failSoft(
+    "getArticlesByCategory",
+    async () => {
+      const supabase = createBuildClient();
 
-  const { data: category } = await supabase
-    .from("categories")
-    .select("id, slug, name, description, position")
-    .eq("slug", categorySlug)
-    .maybeSingle<CategoryRow>();
+      const { data: category } = await supabase
+        .from("categories")
+        .select("id, slug, name, description, position")
+        .eq("slug", categorySlug)
+        .maybeSingle<CategoryRow>();
 
-  if (!category) return { category: null, articles: [] };
+      if (!category) return { category: null, articles: [] };
 
-  const { data, error } = await supabase
-    .from("articles")
-    .select(ARTICLE_COLUMNS)
-    .eq("status", "published")
-    .eq("is_noindex", false)
-    .eq("category_id", category.id)
-    .order("published_at", { ascending: false });
+      const { data, error } = await supabase
+        .from("articles")
+        .select(ARTICLE_COLUMNS)
+        .eq("status", "published")
+        .eq("is_noindex", false)
+        .eq("category_id", category.id)
+        .order("published_at", { ascending: false });
 
-  if (error) throw new Error(`Failed to load articles: ${error.message}`);
+      if (error) throw new Error(`Failed to load articles: ${error.message}`);
 
-  return { category, articles: (data ?? []) as ArticleRow[] };
+      return { category, articles: (data ?? []) as ArticleRow[] };
+    },
+    { category: null, articles: [] },
+  );
 }
 
 /**
  * Articles in the same category, for "related" links.
  * Excludes the current article and caps the count.
+ *
+ * Secondary content: any failure simply means no related links are shown.
  */
 export async function getRelatedArticles(
   article: Pick<ArticleRow, "id" | "category_id">,
@@ -178,25 +270,32 @@ export async function getRelatedArticles(
 ): Promise<ArticleRow[]> {
   if (!article.category_id) return [];
 
-  const supabase = createBuildClient();
+  return failSoft(
+    "getRelatedArticles",
+    async () => {
+      const supabase = createBuildClient();
 
-  const { data, error } = await supabase
-    .from("articles")
-    .select(ARTICLE_COLUMNS)
-    .eq("status", "published")
-    .eq("is_noindex", false)
-    .eq("category_id", article.category_id)
-    .neq("id", article.id)
-    .order("published_at", { ascending: false })
-    .limit(limit);
+      const { data, error } = await supabase
+        .from("articles")
+        .select(ARTICLE_COLUMNS)
+        .eq("status", "published")
+        .eq("is_noindex", false)
+        .eq("category_id", article.category_id)
+        .neq("id", article.id)
+        .order("published_at", { ascending: false })
+        .limit(limit);
 
-  if (error) return [];
+      if (error) throw new Error(`Failed to load related articles: ${error.message}`);
 
-  return (data ?? []) as ArticleRow[];
+      return (data ?? []) as ArticleRow[];
+    },
+    [],
+  );
 }
 
 // ---------------------------------------------------------------------------
-// Admin queries — these rely on RLS to restrict which rows come back.
+// Admin queries — these rely on RLS to restrict which rows come back, and they
+// deliberately DO throw so a CMS failure is never mistaken for "no content".
 // ---------------------------------------------------------------------------
 
 /** Articles visible to the signed-in staff member (any status). */
