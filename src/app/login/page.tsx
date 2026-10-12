@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { AuthForm } from "@/components/auth/auth-form";
 import { EmailField, PasswordField } from "@/components/auth/fields";
-import { BrandMark } from "@/components/layout/nav-links";
 import { getSessionUser } from "@/lib/auth/session";
+import { logoAlt } from "@/lib/seo/alt-text";
 
 import { loginAction } from "./actions";
 
@@ -38,12 +39,18 @@ export default async function LoginPage({
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-3 py-1 text-sm font-medium">
-            <BrandMark className="h-4 w-4 text-primary" />
+            <Image
+              src="/logo.png"
+              alt={logoAlt()}
+              width={64}
+              height={64}
+              priority
+              className="h-4 w-4 object-contain"
+              aria-hidden="true"
+            />
             iPassGenerator
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Administrator sign in
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight">Sign in</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Access to this panel is restricted to authorised staff.
           </p>
