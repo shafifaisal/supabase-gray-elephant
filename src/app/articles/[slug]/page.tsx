@@ -198,28 +198,28 @@ export default async function ArticlePage({
         </ol>
       </nav>
 
+      <h1 className="text-3xl font-bold tracking-tight text-balance sm:text-4xl">
+        {article.title}
+      </h1>
+
+      {article.published_at ? (
+        <p className="mt-3 text-sm text-muted-foreground">
+          Published{" "}
+          <time dateTime={article.published_at}>
+            {formatDate(new Date(article.published_at))}
+          </time>
+          {" · "}Updated{" "}
+          <time dateTime={article.updated_at}>
+            {formatDate(new Date(article.updated_at))}
+          </time>
+        </p>
+      ) : null}
+
+      {article.excerpt ? (
+        <p className="mt-4 text-lg text-muted-foreground">{article.excerpt}</p>
+      ) : null}
+
       <div className="max-w-3xl">
-        <h1 className="text-3xl font-bold tracking-tight text-balance sm:text-4xl">
-          {article.title}
-        </h1>
-
-        {article.published_at ? (
-          <p className="mt-3 text-sm text-muted-foreground">
-            Published{" "}
-            <time dateTime={article.published_at}>
-              {formatDate(new Date(article.published_at))}
-            </time>
-            {" · "}Updated{" "}
-            <time dateTime={article.updated_at}>
-              {formatDate(new Date(article.updated_at))}
-            </time>
-          </p>
-        ) : null}
-
-        {article.excerpt ? (
-          <p className="mt-4 text-lg text-muted-foreground">{article.excerpt}</p>
-        ) : null}
-
         {image ? (
           <ArticleThumbnail
             image={image}
