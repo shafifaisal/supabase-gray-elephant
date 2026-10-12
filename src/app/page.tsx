@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ArticleCard } from "@/components/articles/article-card";
-import { Card, PrivacyNotice, SectionHeading } from "@/components/ui/primitives";
+import { Card, SectionHeading } from "@/components/ui/primitives";
 import { getPublishedArticles } from "@/lib/content/articles";
 import { getPublicMediaMap } from "@/lib/media/urls";
 import { siteConfig } from "@/lib/site";
@@ -25,7 +25,7 @@ export default async function HomePage() {
       <section className="relative isolate w-full overflow-hidden border-b border-border bg-[#04070f] text-white">
         <div
           aria-hidden="true"
-          className="absolute inset-0 -z-20 bg-[url('/hero-binary.svg')] bg-cover bg-center bg-no-repeat"
+          className="absolute inset-0 -z-20 bg-[url('/hero-banner.jpg')] bg-cover bg-center bg-no-repeat"
         />
         <div className="container-page py-16 sm:py-24">
           <div className="max-w-3xl">
@@ -53,9 +53,6 @@ export default async function HomePage() {
               >
                 Browse all tools
               </Link>
-            </div>
-            <div className="mt-10 [&_[role='note']]:border-white/15 [&_[role='note']]:bg-white/5 [&_[role='note']]:text-white/75 [&_[role='note']_svg]:text-sky-300">
-              <PrivacyNotice />
             </div>
           </div>
         </div>
