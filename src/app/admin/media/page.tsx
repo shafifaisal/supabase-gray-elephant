@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 
+import { MediaUploader } from "@/components/admin/media-uploader";
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateTime } from "@/lib/format";
+
+import { uploadMediaAction } from "./actions";
 
 export const metadata: Metadata = {
   title: "Media",
@@ -47,19 +50,7 @@ export default async function MediaPage() {
         Uploaded assets, stored in Supabase Storage.
       </p>
 
-      <div className="mt-6 rounded-[var(--radius-card)] border border-border bg-secondary/40 p-5">
-        <h2 className="text-sm font-semibold">Upload</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          File uploads are wired to Supabase Storage and will be completed in a
-          follow-up phase. Until then, add media by uploading to the{" "}
-          <span className="font-mono">media</span> bucket and inserting a row
-          into the <span className="font-mono">media</span> table.
-        </p>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Vercel functions have no persistent filesystem, so uploads must go to
-          Storage rather than the local disk.
-        </p>
-      </div>
+      <MediaUploader action={uploadMediaAction} />
 
       {error ? (
         <p role="alert" className="mt-4 text-sm text-danger">

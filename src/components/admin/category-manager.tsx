@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 
 import { ActionButton } from "@/components/admin/action-button";
+import { slugifyTitle } from "@/lib/format";
 import type { ActionState } from "@/lib/validation/article";
 
 import { deleteCategoryAction } from "@/app/admin/categories/actions";
@@ -20,6 +21,16 @@ export function CategoryManager({
   categories: { id: string; name: string; slug: string; description: string | null; position: number }[];
 }) {
   const [state, formAction] = useActionState(action, {});
+  const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [slugTouched, setSlugTouched] = useState(false);
+
+  function onNameChange(value: string) {
+    setName(value);
+    if (!slugTouched) {
+      setSlug(slugifyTitle(value));
+    }
+  }
 
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-2">
@@ -31,7 +42,14 @@ export function CategoryManager({
             <label htmlFor="name" className={labelClasses}>
               Name
             </label>
-            <input id="name" name="name" required className={inputClasses} />
+            <input
+              id="name"
+              name="name"
+              value={name}
+              onChange={(event) => onNameChange(event.target.value)}
+              required
+              className={inputClasses}
+            />
             {state.fieldErrors?.name ? (
               <p className="mt-1 text-sm text-danger">{state.fieldErrors.name}</p>
             ) : null}
@@ -41,7 +59,20 @@ export function CategoryManager({
             <label htmlFor="slug" className={labelClasses}>
               Slug
             </label>
-            <input id="slug" name="slug" required className={`${inputClasses} font-mono`} />
+            <input
+              id="slug"
+              name="slug"
+              value={slug}
+              onChange={(event) => {
+                setSlugTouched(true);
+                setSlug(event.target.value);
+              }}
+              required
+              className={`${inputClasses} font-mono`}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Public URL: /articles/category/{slug || "…"}
+            </p>
             {state.fieldErrors?.slug ? (
               <p className="mt-1 text-sm text-danger">{state.fieldErrors.slug}</p>
             ) : null}

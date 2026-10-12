@@ -110,6 +110,46 @@ export async function getPublishedArticles(limit = 50): Promise<ArticleRow[]> {
 }
 
 /**
+ * Full-text-ish search over published articles (title and excerpt).
+ *
+ * The term is reduced to letters, numbers, spaces and hyphens before it reaches
+ * PostgREST's `or()` filter, which treats commas and parentheses as syntax. An
+ * empty or symbol-only term yields no results rather than every article.
+ */
+export async function searchPublishedArticles(
+  query: string,
+  limit = 50,
+): Promise<ArticleRow[]> {
+  const term = query
+    .trim()
+    .replace(/[^\p{L}\p{N}\s-]/gu, "")
+    .trim();
+
+  if (!term) return [];
+
+  return failSoft(
+    "searchPublishedArticles",
+    async () => {
+      const supabase = createBuildClient();
+
+      const { data, error } = await supabase
+        .from("articles")
+        .select(ARTICLE_COLUMNS)
+        .eq("status", "published")
+        .eq("is_noindex", false)
+        .or(`title.ilike.%${term}%,excerpt.ilike.%${term}%`)
+        .order("published_at", { ascending: false })
+        .limit(limit);
+
+      if (error) throw new Error(`Failed to search articles: ${error.message}`);
+
+      return (data ?? []) as ArticleRow[];
+    },
+    [],
+  );
+}
+
+/**
  * Returns one published article by slug, or null.
  *
  * Returns null rather than throwing so the page can respond 404 for both

@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { logoAlt } from "@/lib/seo/alt-text";
+
 export interface NavItem {
   href: string;
   label: string;
@@ -49,7 +51,7 @@ export function Wordmark() {
     >
       <Image
         src="/logo.png"
-        alt=""
+        alt={logoAlt()}
         width={64}
         height={64}
         priority

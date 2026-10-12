@@ -2,9 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ArticleEditor } from "@/components/admin/article-editor";
+import {
+  ArticleEditor,
+  type FeaturedImageValue,
+} from "@/components/admin/article-editor";
 import { roleAtLeast, requireRole } from "@/lib/auth/session";
 import { getArticleForEdit, getCategories, getRevisions } from "@/lib/content/articles";
+import { getPublicMediaMap } from "@/lib/media/urls";
 import { formatDateTime } from "@/lib/format";
 
 import { changeStatusAction, deleteArticleAction, updateArticleAction } from "../../actions";
@@ -35,6 +39,22 @@ export default async function EditArticlePage({
   const revisions = await getRevisions(id);
   const canPublish = roleAtLeast(user.role, "editor");
   const canDelete = roleAtLeast(user.role, "admin");
+
+  const mediaMap = article.featured_image_id
+    ? await getPublicMediaMap([article.featured_image_id])
+    : new Map();
+  const featuredMedia = article.featured_image_id
+    ? mediaMap.get(article.featured_image_id)
+    : undefined;
+  const featuredImage: FeaturedImageValue | null = article.featured_image_id
+    ? {
+        id: article.featured_image_id,
+        url: featuredMedia?.url ?? null,
+        width: featuredMedia?.width ?? null,
+        height: featuredMedia?.height ?? null,
+        alt: featuredMedia?.alt ?? null,
+      }
+    : null;
 
   return (
     <div className="space-y-6">
@@ -69,6 +89,7 @@ export default async function EditArticlePage({
         action={updateArticleAction}
         canPublish={canPublish}
         status={article.status}
+        featuredImage={featuredImage}
         categories={categories.map((c) => ({ id: c.id, name: c.name }))}
         values={{
           id: article.id,

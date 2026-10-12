@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AdSlot } from "@/components/ads/ad-slot";
+import { ArticleCard } from "@/components/articles/article-card";
 import {
   getPublicCategories,
   getPublishedArticles,
+  searchPublishedArticles,
 } from "@/lib/content/articles";
+import { getPublicMediaMap } from "@/lib/media/urls";
 import { getAdsConfig } from "@/lib/ads/server";
-import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Articles",
@@ -16,12 +18,23 @@ export const metadata: Metadata = {
   alternates: { canonical: "/articles" },
 };
 
-export default async function ArticlesPage() {
+export default async function ArticlesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
+  const query = (q ?? "").trim();
+
   const [articles, categories, ads] = await Promise.all([
-    getPublishedArticles(),
+    query ? searchPublishedArticles(query) : getPublishedArticles(),
     getPublicCategories(),
     getAdsConfig(),
   ]);
+
+  const mediaMap = await getPublicMediaMap(
+    articles.map((article) => article.featured_image_id),
+  );
 
   return (
     <div className="container-page py-10">
@@ -34,8 +47,28 @@ export default async function ArticlesPage() {
         </p>
       </div>
 
+      <form role="search" action="/articles" method="get" className="mt-8 flex max-w-md gap-2">
+        <label htmlFor="article-search" className="sr-only">
+          Search articles
+        </label>
+        <input
+          id="article-search"
+          name="q"
+          type="search"
+          defaultValue={query}
+          placeholder="Search articles…"
+          className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none"
+        />
+        <button
+          type="submit"
+          className="h-10 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+        >
+          Search
+        </button>
+      </form>
+
       {categories.length > 0 ? (
-        <nav aria-label="Article categories" className="mt-8">
+        <nav aria-label="Article categories" className="mt-6">
           <ul className="flex flex-wrap gap-2">
             {categories.map((category) => (
               <li key={category.id}>
@@ -51,38 +84,35 @@ export default async function ArticlesPage() {
         </nav>
       ) : null}
 
+      {query ? (
+        <p className="mt-8 text-sm text-muted-foreground" role="status">
+          {articles.length === 0
+            ? `No articles match “${query}”.`
+            : `${articles.length} result${articles.length === 1 ? "" : "s"} for “${query}”.`}
+        </p>
+      ) : null}
+
       {articles.length === 0 ? (
         <div className="mt-10 rounded-[var(--radius-card)] border border-dashed border-border bg-secondary/40 p-10 text-center">
-          <h2 className="text-lg font-semibold">Articles are being written</h2>
+          <h2 className="text-lg font-semibold">
+            {query ? "No matching articles" : "Articles are being written"}
+          </h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-            Articles appear here once an editor has reviewed and published them.
-            In the meantime, the tools above are ready to use.
+            {query
+              ? "Try a different search term, or browse every article below the categories."
+              : "Articles appear here once an editor has reviewed and published them. In the meantime, the tools above are ready to use."}
           </p>
         </div>
       ) : (
         <ul className="mt-10 grid gap-6 sm:grid-cols-2">
           {articles.map((article) => (
             <li key={article.id}>
-              <article className="h-full rounded-[var(--radius-card)] border border-border bg-background p-5">
-                <h2 className="text-lg font-semibold">
-                  <Link
-                    href={`/articles/${article.slug}`}
-                    className="rounded hover:text-primary"
-                  >
-                    {article.title}
-                  </Link>
-                </h2>
-                {article.excerpt ? (
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {article.excerpt}
-                  </p>
-                ) : null}
-                {article.published_at ? (
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    Published {formatDate(new Date(article.published_at))}
-                  </p>
-                ) : null}
-              </article>
+              <ArticleCard
+                article={article}
+                image={article.featured_image_id
+                  ? mediaMap.get(article.featured_image_id) ?? null
+                  : null}
+              />
             </li>
           ))}
         </ul>

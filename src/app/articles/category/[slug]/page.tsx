@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ArticleCard } from "@/components/articles/article-card";
 import { getArticlesByCategory } from "@/lib/content/articles";
-import { formatDate } from "@/lib/format";
+import { getPublicMediaMap } from "@/lib/media/urls";
 import { siteConfig } from "@/lib/site";
 
 /**
@@ -51,6 +52,10 @@ export default async function CategoryPage({
 
   if (!category) notFound();
 
+  const mediaMap = await getPublicMediaMap(
+    articles.map((article) => article.featured_image_id),
+  );
+
   return (
     <div className="container-page py-10">
       <nav aria-label="Breadcrumb" className="mb-6">
@@ -86,26 +91,12 @@ export default async function CategoryPage({
         <ul className="mt-10 grid gap-6 sm:grid-cols-2">
           {articles.map((article) => (
             <li key={article.id}>
-              <article className="h-full rounded-[var(--radius-card)] border border-border bg-background p-5">
-                <h2 className="text-lg font-semibold">
-                  <Link
-                    href={`/articles/${article.slug}`}
-                    className="rounded hover:text-primary"
-                  >
-                    {article.title}
-                  </Link>
-                </h2>
-                {article.excerpt ? (
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {article.excerpt}
-                  </p>
-                ) : null}
-                {article.published_at ? (
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    Published {formatDate(new Date(article.published_at))}
-                  </p>
-                ) : null}
-              </article>
+              <ArticleCard
+                article={article}
+                image={article.featured_image_id
+                  ? mediaMap.get(article.featured_image_id) ?? null
+                  : null}
+              />
             </li>
           ))}
         </ul>

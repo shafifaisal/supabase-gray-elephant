@@ -32,6 +32,18 @@ const nextConfig: NextConfig = {
     },
   },
 
+  /**
+   * Article featured images are served from Supabase Storage's public bucket,
+   * whose host is `<project-ref>.supabase.co`. Allowing that wildcard lets the
+   * Next.js image optimizer resize and cache them without hard-coding a
+   * project ref, so the same configuration works in every environment.
+   */
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "**.supabase.co", pathname: "/storage/v1/object/public/**" },
+    ],
+  },
+
   // Security headers applied to every response.
   async headers() {
     return [

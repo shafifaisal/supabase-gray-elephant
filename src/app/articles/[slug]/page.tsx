@@ -9,10 +9,21 @@ import {
   type ArticleRow,
 } from "@/lib/content/articles";
 import { sanitizeForRender } from "@/lib/content/markdown";
+import { ArticleThumbnail } from "@/components/articles/article-thumbnail";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbNode } from "@/lib/seo/structured-data";
+import { getPublicMediaMap, type PublicMedia } from "@/lib/media/urls";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 import { formatDate } from "@/lib/format";
+
+/** Resolves an article's public featured image, if it has one. */
+async function resolveFeaturedImage(
+  article: Pick<ArticleRow, "featured_image_id">,
+): Promise<PublicMedia | null> {
+  if (!article.featured_image_id) return null;
+  const map = await getPublicMediaMap([article.featured_image_id]);
+  return map.get(article.featured_image_id) ?? null;
+}
 
 /**
  * Resolves the effective title, description and canonical URL for an article,
@@ -40,8 +51,9 @@ function articleStructuredData(params: {
   description: string;
   url: string;
   article: ArticleRow;
+  image: PublicMedia | null;
 }) {
-  const { seoTitle, description, url, article } = params;
+  const { seoTitle, description, url, article, image } = params;
 
   return {
     "@context": "https://schema.org",
@@ -49,6 +61,7 @@ function articleStructuredData(params: {
     headline: seoTitle,
     description,
     url,
+    image: image ? [image.url] : undefined,
     datePublished: article.published_at ?? undefined,
     dateModified: article.updated_at,
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
@@ -83,6 +96,18 @@ export async function generateMetadata({
   }
 
   const { seoTitle, description, url } = resolveMetadata(article);
+  const image = await resolveFeaturedImage(article);
+
+  const ogImage = image
+    ? [
+        {
+          url: image.url,
+          width: image.width ?? undefined,
+          height: image.height ?? undefined,
+          alt: image.alt?.trim() || seoTitle,
+        },
+      ]
+    : undefined;
 
   return {
     title: seoTitle,
@@ -97,11 +122,13 @@ export async function generateMetadata({
       url,
       publishedTime: article.published_at ?? undefined,
       modifiedTime: article.updated_at,
+      images: ogImage,
     },
     twitter: {
       card: "summary_large_image",
       title: article.og_title || seoTitle,
       description: article.og_description || description,
+      images: image ? [image.url] : undefined,
     },
   };
 }
@@ -136,6 +163,7 @@ export default async function ArticlePage({
   if (!article) notFound();
 
   const { seoTitle, description, url } = resolveMetadata(article);
+  const image = await resolveFeaturedImage(article);
 
   const breadcrumb = breadcrumbNode([
     { name: "Home", path: "/" },
@@ -148,7 +176,9 @@ export default async function ArticlePage({
       {/* Article structured data. Only fields we can genuinely evidence are
           included — no invented ratings, reviews or authorship claims.
           "<" is escaped so the payload cannot terminate the script element. */}
-      <JsonLd data={articleStructuredData({ seoTitle, description, url, article })} />
+      <JsonLd
+        data={articleStructuredData({ seoTitle, description, url, article, image })}
+      />
       {/* Breadcrumb structured data, matching the visible breadcrumb below. */}
       <JsonLd data={breadcrumb} />
 
@@ -190,6 +220,16 @@ export default async function ArticlePage({
           <p className="mt-4 text-lg text-muted-foreground">{article.excerpt}</p>
         ) : null}
 
+        {image ? (
+          <ArticleThumbnail
+            image={image}
+            title={article.title}
+            priority
+            sizes="(min-width: 768px) 48rem, 100vw"
+            className="mt-6 rounded-[var(--radius-card)] border border-border"
+          />
+        ) : null}
+
         {/*
           The body is sanitised AGAIN here, on read.
 
@@ -229,22 +269,38 @@ export default async function ArticlePage({
   );
 }
 
+async function getRelatedWithImages(article: ArticleRow) {
+  const related = await getRelatedArticles(article);
+  const map = await getPublicMediaMap(
+    related.map((item) => item.featured_image_id),
+  );
+  return { related, map };
+}
+
 function RelatedArticles({ article }: { article: ArticleRow }) {
-  const related = use(getRelatedArticles(article));
+  const { related, map } = use(getRelatedWithImages(article));
 
   if (related.length === 0) return null;
 
   return (
     <section className="mt-10">
       <h2 className="text-lg font-semibold">Related reading</h2>
-      <ul className="mt-4 space-y-2">
+      <ul className="mt-4 grid gap-4 sm:grid-cols-2">
         {related.map((item) => (
           <li key={item.id}>
             <Link
               href={`/articles/${item.slug}`}
-              className="text-sm text-primary underline underline-offset-2"
+              className="group flex items-center gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-secondary/60"
             >
-              {item.title}
+              <ArticleThumbnail
+                image={item.featured_image_id ? map.get(item.featured_image_id) ?? null : null}
+                title={item.title}
+                sizes="8rem"
+                className="w-32 shrink-0 rounded-md border border-border"
+              />
+              <span className="text-sm font-medium group-hover:text-primary">
+                {item.title}
+              </span>
             </Link>
           </li>
         ))}

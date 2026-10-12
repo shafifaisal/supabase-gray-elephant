@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { logoAlt } from "@/lib/seo/alt-text";
 import { getBrandName, getFooterText } from "@/lib/settings/public";
 
 /**
@@ -55,7 +56,7 @@ export async function Footer() {
             <div className="flex items-center gap-2 font-bold">
               <Image
                 src="/logo.png"
-                alt=""
+                alt={logoAlt(brandName)}
                 width={64}
                 height={64}
                 className="h-8 w-8 object-contain"

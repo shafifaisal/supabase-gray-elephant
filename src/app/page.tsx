@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { ArticleCard } from "@/components/articles/article-card";
 import { Card, PrivacyNotice, SectionHeading } from "@/components/ui/primitives";
+import { getPublishedArticles } from "@/lib/content/articles";
+import { getPublicMediaMap } from "@/lib/media/urls";
 import { siteConfig } from "@/lib/site";
 import { toolPath, tools } from "@/lib/tools";
 
@@ -11,7 +14,12 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const latestArticles = await getPublishedArticles(3);
+  const latestMedia = await getPublicMediaMap(
+    latestArticles.map((article) => article.featured_image_id),
+  );
+
   return (
     <>
       <section className="relative isolate w-full overflow-hidden border-b border-border bg-[#04070f] text-white">
@@ -79,6 +87,38 @@ export default function HomePage() {
           ))}
         </ul>
       </section>
+
+      {latestArticles.length > 0 ? (
+        <section className="container-page border-t border-border py-16">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <SectionHeading
+              title="Latest articles"
+              description="Practical guidance on password strength, passphrases, password managers and account recovery."
+            />
+            <Link
+              href="/articles"
+              className="inline-flex h-10 items-center rounded-md border border-border px-4 text-sm font-semibold transition-colors hover:bg-secondary"
+            >
+              View all articles
+            </Link>
+          </div>
+
+          <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {latestArticles.map((article) => (
+              <li key={article.id}>
+                <ArticleCard
+                  article={article}
+                  image={
+                    article.featured_image_id
+                      ? latestMedia.get(article.featured_image_id) ?? null
+                      : null
+                  }
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <section className="border-t border-border bg-secondary/30">
         <div className="container-page py-16">

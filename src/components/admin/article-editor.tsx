@@ -1,9 +1,66 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 import { ActionButton } from "@/components/admin/action-button";
+import { ArticleThumbnail } from "@/components/articles/article-thumbnail";
+import { slugifyTitle } from "@/lib/format";
 import type { ActionState } from "@/lib/validation/article";
+
+import { uploadArticleImageAction, updateArticleImageAltAction } from "@/app/admin/articles/image-actions";
+
+/** The featured image currently attached to the article being edited. */
+export interface FeaturedImageValue {
+  id: string;
+  /** Null when the media row is not publicly readable (e.g. a private asset). */
+  url: string | null;
+  width: number | null;
+  height: number | null;
+  alt: string | null;
+}
+
+/** Client-side pre-checks; the server repeats and is the authority. */
+const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MIN_IMAGE_WIDTH = 600;
+const MIN_IMAGE_HEIGHT = 315;
+const MAX_IMAGE_DIMENSION = 8000;
+
+async function validateImageFile(file: File): Promise<string | null> {
+  if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+    return "Use a PNG, JPEG or WebP image.";
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    return "Images must be 5 MB or smaller.";
+  }
+
+  try {
+    const objectUrl = URL.createObjectURL(file);
+    const dimensions = await new Promise<{ width: number; height: number }>(
+      (resolve, reject) => {
+        const img = new window.Image();
+        img.onload = () =>
+          resolve({ width: img.naturalWidth, height: img.naturalHeight });
+        img.onerror = () => reject(new Error("Could not decode the image"));
+        img.src = objectUrl;
+      },
+    ).finally(() => URL.revokeObjectURL(objectUrl));
+
+    if (dimensions.width < MIN_IMAGE_WIDTH || dimensions.height < MIN_IMAGE_HEIGHT) {
+      return `Images must be at least ${MIN_IMAGE_WIDTH}×${MIN_IMAGE_HEIGHT} pixels.`;
+    }
+    if (
+      dimensions.width > MAX_IMAGE_DIMENSION ||
+      dimensions.height > MAX_IMAGE_DIMENSION
+    ) {
+      return `Images must be at most ${MAX_IMAGE_DIMENSION}×${MAX_IMAGE_DIMENSION} pixels.`;
+    }
+  } catch {
+    return "That file could not be read as an image.";
+  }
+
+  return null;
+}
 
 export interface ArticleFormValues {
   id?: string;
@@ -39,12 +96,14 @@ export function ArticleEditor({
   categories,
   canPublish,
   status,
+  featuredImage = null,
 }: {
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
   values: ArticleFormValues;
   categories: { id: string; name: string }[];
   canPublish: boolean;
   status: string;
+  featuredImage?: FeaturedImageValue | null;
 }) {
   const [state, formAction] = useActionState(action, {});
   const [body, setBody] = useState(values.body_md);
@@ -53,6 +112,14 @@ export function ArticleEditor({
   const [slug, setSlug] = useState(values.slug);
   const [slugTouched, setSlugTouched] = useState(Boolean(values.slug));
   const [title, setTitle] = useState(values.title);
+  const [image, setImage] = useState<FeaturedImageValue | null>(featuredImage);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imageAlt, setImageAlt] = useState(featuredImage?.alt ?? "");
+  const [altSaving, setAltSaving] = useState(false);
+  const [altStatus, setAltStatus] = useState<"idle" | "saved" | "error">("idle");
+  const savedAltRef = useRef(featuredImage?.alt ?? "");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch a sanitised preview from the server whenever the body changes and
   // the preview panel is open.
@@ -86,16 +153,76 @@ export function ArticleEditor({
   function onTitleChange(value: string) {
     setTitle(value);
     if (!slugTouched) {
-      setSlug(
-        value
-          .toLowerCase()
-          .normalize("NFKD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .replace(/[^a-z0-9\s-]/g, "")
-          .trim()
-          .replace(/[\s-]+/g, "-")
-          .replace(/^-|-$/g, ""),
-      );
+      setSlug(slugifyTitle(value));
+    }
+  }
+
+  async function onImageSelected(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    // Reset the native input so re-selecting the same file still fires change.
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (!file) return;
+
+    setImageError(null);
+
+    const clientError = await validateImageFile(file);
+    if (clientError) {
+      setImageError(clientError);
+      return;
+    }
+
+    const formData = new FormData();
+    formData.set("image", file);
+    formData.set("altText", imageAlt);
+
+    setImageUploading(true);
+    try {
+      const result = await uploadArticleImageAction(null, formData);
+      if (result.ok && result.image) {
+        const uploadedAlt = result.image.altText ?? "";
+        setImage({
+          id: result.image.id,
+          url: result.image.url,
+          width: result.image.width,
+          height: result.image.height,
+          alt: result.image.altText,
+        });
+        setImageAlt(uploadedAlt);
+        savedAltRef.current = uploadedAlt;
+        setAltStatus("idle");
+      } else {
+        setImageError(result.error ?? "Upload failed.");
+      }
+    } catch {
+      setImageError("Upload failed. Check your connection and try again.");
+    } finally {
+      setImageUploading(false);
+    }
+  }
+
+  async function onAltBlur() {
+    if (!image) return;
+
+    const next = imageAlt.trim();
+    if (next === savedAltRef.current.trim()) return;
+
+    setAltSaving(true);
+    setAltStatus("idle");
+    try {
+      const result = await updateArticleImageAltAction(image.id, next);
+      if (result.ok) {
+        const saved = result.altText ?? "";
+        savedAltRef.current = saved;
+        setImageAlt(saved);
+        setImage((current) => (current ? { ...current, alt: saved || null } : current));
+        setAltStatus("saved");
+      } else {
+        setAltStatus("error");
+      }
+    } catch {
+      setAltStatus("error");
+    } finally {
+      setAltSaving(false);
     }
   }
 
@@ -266,6 +393,123 @@ export function ArticleEditor({
           />
           Hide from search engines (noindex) and exclude from the sitemap
         </label>
+      </fieldset>
+
+      <fieldset className="space-y-4 rounded-[var(--radius-card)] border border-border bg-background p-5">
+        <legend className="px-1 text-sm font-semibold">Featured image</legend>
+
+        {/* The stored reference. Empty means no featured image. */}
+        <input type="hidden" name="featured_image_id" value={image?.id ?? ""} />
+
+        <div className="max-w-md">
+          <ArticleThumbnail
+            image={
+              image && image.url
+                ? {
+                    id: image.id,
+                    url: image.url,
+                    alt: image.alt,
+                    width: image.width,
+                    height: image.height,
+                  }
+                : null
+            }
+            title={title || "Featured image preview"}
+            sizes="(min-width: 640px) 28rem, 100vw"
+            className="rounded-md border border-border"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="featured_image" className={labelClasses}>
+            Image
+          </label>
+          <input
+            ref={fileInputRef}
+            id="featured_image"
+            name="featured_image"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            disabled={imageUploading}
+            onChange={onImageSelected}
+            className={`${inputClasses} file:mr-3 file:rounded file:border-0 file:bg-secondary file:px-3 file:py-1 file:text-sm file:font-semibold`}
+            aria-describedby="featured-image-hint"
+          />
+          <p id="featured-image-hint" className="mt-1 text-xs text-muted-foreground">
+            PNG, JPEG or WebP · at least {MIN_IMAGE_WIDTH}×{MIN_IMAGE_HEIGHT} · up
+            to 5 MB. Shown as the article thumbnail and in social previews.
+            Choosing a new file replaces the current image.
+          </p>
+        </div>
+
+        {image ? (
+          <div>
+            <label htmlFor="featured_image_alt" className={labelClasses}>
+              Alt text
+            </label>
+            <input
+              id="featured_image_alt"
+              name="featured_image_alt"
+              value={imageAlt}
+              maxLength={300}
+              onChange={(event) => {
+                setImageAlt(event.target.value);
+                if (altStatus !== "idle") setAltStatus("idle");
+              }}
+              onBlur={onAltBlur}
+              disabled={altSaving}
+              placeholder="Describe the image for search engines and screen readers"
+              className={inputClasses}
+              aria-describedby="featured-image-alt-hint"
+            />
+            <p
+              id="featured-image-alt-hint"
+              className="mt-1 text-xs text-muted-foreground"
+            >
+              {altStatus === "saved"
+                ? "Alt text saved."
+                : altStatus === "error"
+                  ? "Could not save the alt text. Try again."
+                  : "Blank uses the article title. Describe what the image shows; avoid keyword lists."}
+            </p>
+          </div>
+        ) : null}
+
+        {imageUploading ? (
+          <p role="status" className="text-sm text-muted-foreground">
+            Uploading…
+          </p>
+        ) : null}
+
+        {imageError ? (
+          <p role="alert" className="text-sm text-danger">
+            {imageError}
+          </p>
+        ) : null}
+
+        {image && !image.url ? (
+          <p className="text-sm text-warning">
+            The current image is not publicly available and will not display.
+            Upload a replacement.
+          </p>
+        ) : null}
+
+        {image ? (
+          <button
+            type="button"
+            onClick={() => {
+              setImage(null);
+              setImageError(null);
+              setImageAlt("");
+              savedAltRef.current = "";
+              setAltStatus("idle");
+              if (fileInputRef.current) fileInputRef.current.value = "";
+            }}
+            className="h-10 rounded-md border border-danger/50 px-4 text-sm font-semibold text-danger transition-colors hover:bg-danger/10"
+          >
+            Remove image
+          </button>
+        ) : null}
       </fieldset>
 
       <fieldset className="space-y-4 rounded-[var(--radius-card)] border border-border bg-background p-5">

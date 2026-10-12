@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { slugify } from "@/lib/format";
+import { slugify, slugifyTitle } from "@/lib/format";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 
 describe("slugify", () => {
@@ -26,6 +26,28 @@ describe("slugify", () => {
 
   it("returns an empty string for symbol-only input", () => {
     expect(slugify("!!!")).toBe("");
+  });
+});
+
+describe("slugifyTitle", () => {
+  it("removes stop words", () => {
+    expect(slugifyTitle("Choose the Best Password for You")).toBe(
+      "choose-best-password",
+    );
+  });
+
+  it("removes conjunctions and symbols", () => {
+    expect(slugifyTitle("Passwords and Passphrases & You")).toBe(
+      "passwords-passphrases",
+    );
+  });
+
+  it("does not strip stop words inside longer words", () => {
+    expect(slugifyTitle("Candy and Brand")).toBe("candy-brand");
+  });
+
+  it("falls back to the plain slug when every token is a stop word", () => {
+    expect(slugifyTitle("The And Or")).toBe("the-and-or");
   });
 });
 

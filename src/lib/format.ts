@@ -33,3 +33,33 @@ export function slugify(input: string): string {
     .replace(/[\s-]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
+
+/**
+ * Words dropped from auto-generated slugs. Connectors, articles and common
+ * filler words add no value to a URL and only make slugs longer. Word matching
+ * is by whole token, so "candy" (contains "and") is never affected.
+ */
+export const SLUG_STOP_WORDS = new Set([
+  "a", "an", "the",
+  "and", "or", "but", "nor", "so", "yet",
+  "of", "to", "in", "on", "at", "for", "with", "by", "from", "as", "into",
+  "is", "are", "was", "were", "be", "been", "being", "am",
+  "this", "that", "these", "those",
+  "it", "its",
+  "your", "you",
+]);
+
+/**
+ * Builds a slug for auto-generation from a title: a normalised {@link slugify}
+ * with stop words removed. Falls back to the plain slug if every token is a
+ * stop word, so a title is never reduced to an empty slug by filtering alone.
+ */
+export function slugifyTitle(input: string): string {
+  const slug = slugify(input);
+  const filtered = slug
+    .split("-")
+    .filter((token) => token && !SLUG_STOP_WORDS.has(token))
+    .join("-");
+
+  return filtered || slug;
+}

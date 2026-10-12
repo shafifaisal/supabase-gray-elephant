@@ -14,7 +14,7 @@ the UI is never the gatekeeper.
 - **[automated]** No `.env*` (except `.env.example`), `*.pem`, `*.key`, or
   `id_rsa` is committed — `prelaunch-check.mjs`.
 - **[automated]** No service-role key material appears in committed source —
-  `prelaunch-check.mjs` (scans for a `"role":"service_role"` claim).
+  `prelaunch-check.mjs` (scans for a service-role JWT role claim).
 - **[automated]** No secret-named variable is exposed via `NEXT_PUBLIC_` —
   `verify-security.mjs` (env audit) and `prelaunch-check.mjs`.
 - **[automated]** No secret reaches the client bundle — `verify-security.mjs`

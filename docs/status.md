@@ -433,3 +433,100 @@ explicitly left as operator actions. Nothing below claims they were performed.
 ---
 
 ## Phase 9 — Deploy production, domain, Search Console, backups, AdSense readiness ⬜ NEXT
+
+---
+
+## Media upload — wired to Supabase Storage ✅ COMPLETE (unverified against a live bucket)
+
+**Completed**
+- **`src/app/admin/media/actions.ts`** — `uploadMediaAction`. Validates the file
+  (image MIME allow-list, 5 MB cap mirrored from `0005_storage.sql`), derives the
+  object extension from the MIME type, writes the binary to the `media` (public)
+  or `media-private` bucket under a path prefixed with the uploader's id
+  (`<uid>/<uuid>.<ext>`, satisfying `storage_staff_insert`), then inserts the
+  `media` metadata row with `uploaded_by = auth.uid()`. An orphaned object is
+  removed if the metadata insert fails. Records a `media.uploaded` audit entry and
+  revalidates `/admin/media`. Runs entirely server-side with the cookie/RLS
+  client — no service-role key, no filesystem writes.
+- **`src/components/admin/media-uploader.tsx`** — client uploader using
+  `useActionState` + the shared `ActionButton`; resets the form on success and
+  surfaces `error`/`fieldErrors`.
+- **`src/app/admin/media/page.tsx`** — placeholder copy replaced with the
+  uploader; list and select unchanged.
+
+**Verification (all executed)**
+| Gate | Result |
+|---|---|
+| `npm run lint` | pass |
+| `npm run typecheck` | pass |
+| `npm test` | 226/226 |
+| `npm run build` | pass |
+
+**Known limitations — recorded, not hidden**
+- Not exercised against a live Supabase project from this environment (no
+  running dev server / credentials were used). The Storage upload + metadata
+  write are **implemented but unverified end-to-end**.
+- `width`/`height` are stored as `null` for uploads made from the media library
+  page (no dependency added there). The article featured-image path *does* parse
+  dimensions server-side (see below). Thumbnails and delete/alt-text editing are
+  not part of this change.
+- Bucket objects created by an author can only be deleted by an editor, and the
+  `media` row only by an admin (per existing policies); no delete UI was added.
+
+---
+
+## Article featured images & thumbnails ✅ COMPLETE (live bucket unverified)
+
+**Completed**
+- **Upload + preview in the article editor** (`article-editor.tsx`). A "Featured
+  image" section lets staff pick a file, validates it client-side (type, ≤5 MB,
+  600×315 minimum), uploads immediately, and previews it. The stored media id
+  rides along in a hidden `featured_image_id` field; choosing a new file replaces
+  the image and a Remove button clears it. Preserves the existing form layout.
+- **Server-side authority** (`src/lib/media/featured-image.ts` +
+  `src/lib/media/image-info.ts`). The declared MIME type is ignored — the bytes
+  are sniffed (PNG/JPEG/WebP magic numbers) and the true dimensions are read from
+  the container header. Images must be 600×315…8000×8000. Objects are written to
+  the public `media` bucket at `<uid>/<uuid>.<ext>` (satisfying storage RLS) and a
+  `media` row records size, dimensions and `uploaded_by`. Auth is re-checked in
+  the action (`requireRole("author")`); no service-role key is used.
+- **Old-image cleanup** — replacing or deleting an article deletes the previous
+  asset, but only when no article still references it (best effort; an author may
+  lack the delete role, in which case an admin clears it later).
+- **Public thumbnails** via `components/articles/article-thumbnail.tsx` and
+  `article-card.tsx`: fixed 16:9, `object-fit: cover`, inline placeholder when an
+  article has no image (never a broken-image icon), lazy-loaded (the article hero
+  is `priority`). Shown on the homepage ("Latest articles"), `/articles`,
+  category pages, related reading, the article hero, and `/articles?q=` search
+  results.
+- **Search** — `/articles?q=` now filters published articles by title/excerpt
+  (the surface already advertised by the WebSite search action).
+- **SEO/social** — `og:image` and `twitter:image` use the absolute Supabase
+  public URL, and the Article JSON-LD gains an `image`. `next.config.ts` allows
+  the `**.supabase.co` public-storage path so the image optimizer can resize.
+- **Alt text (SEO)** — a single `src/lib/seo/alt-text.ts` builder now feeds every
+  image: the header/footer logo (`logoAlt`) and article thumbnails
+  (`articleImageAlt`, which prefers the editor description and falls back to the
+  title). The article editor also has an **Alt text** field that saves to the
+  media row (`media_staff_update`) so editors control image SEO after upload;
+  blank resets to the title fallback. The hero is an intentionally decorative CSS
+  background (`aria-hidden`), so it correctly carries no alt. New images should
+  take their alt from this module rather than an inline string.
+
+**Verification (all executed)**
+| Gate | Result |
+|---|---|
+| `npm run lint` | pass |
+| `npm run typecheck` | pass |
+| `npm test` | **243/243** (+17 overall) |
+| `npm run build` | pass (`/articles` now dynamic for `?q`) |
+| `node scripts/prelaunch-check.mjs` | 29/29 |
+
+**Known limitations — recorded, not hidden**
+- Not exercised against a live Supabase bucket from this environment. Upload,
+  storage RLS and public URL resolution are **implemented but unverified
+  end-to-end**. Requires migrations applied and the `media` bucket to exist.
+- Dimension limits are also checked in the browser for fast feedback; the server
+  repeats them and is the authority.
+- There is no separate control for the existing `og_image_id` column; the
+  featured image is used for Open Graph, and `og_image_id` is left untouched.

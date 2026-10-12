@@ -9,6 +9,7 @@ import {
   slugExists,
 } from "@/lib/content/articles";
 import { roleAtLeast, requireRole } from "@/lib/auth/session";
+import { cleanupUnusedMedia } from "@/lib/media/featured-image";
 import { createClient } from "@/lib/supabase/server";
 import {
   articleSchema,
@@ -187,6 +188,15 @@ export async function updateArticleAction(
     return { error: `Could not save the article: ${error.message}` };
   }
 
+  // The featured image was replaced or removed: delete the previous asset once
+  // nothing else references it. Best effort, and never blocks the save.
+  if (
+    existing.featured_image_id &&
+    existing.featured_image_id !== input.featured_image_id
+  ) {
+    await cleanupUnusedMedia(existing.featured_image_id);
+  }
+
   // Append a revision. Revisions are immutable, so this is a plain insert and
   // the next revision number is derived from the current count.
   const { count } = await supabase
@@ -217,6 +227,15 @@ export async function updateArticleAction(
 
   revalidatePath("/admin/articles");
   revalidatePath(`/admin/articles/${id}/edit`);
+
+  // A title, excerpt or featured image may have changed on a published article;
+  // refresh the public surfaces that render it.
+  revalidatePath("/");
+  revalidatePath("/articles");
+  revalidatePath(`/articles/${input.slug}`);
+  if (existing.slug !== input.slug) {
+    revalidatePath(`/articles/${existing.slug}`);
+  }
 
   return { success: true };
 }
@@ -275,6 +294,7 @@ export async function changeStatusAction(formData: FormData): Promise<void> {
 
   // Publishing must invalidate the public caches immediately.
   if (status === "published" || status === "archived") {
+    revalidatePath("/");
     revalidatePath("/articles");
     revalidatePath(`/articles/${existing.slug}`);
     revalidatePath("/sitemap.xml");
@@ -308,6 +328,12 @@ export async function deleteArticleAction(formData: FormData): Promise<void> {
     before: { slug: existing.slug, title: existing.title },
   });
 
+  // Remove the featured image if this was the last thing pointing at it.
+  if (existing.featured_image_id) {
+    await cleanupUnusedMedia(existing.featured_image_id);
+  }
+
+  revalidatePath("/");
   revalidatePath("/articles");
   revalidatePath(`/articles/${existing.slug}`);
   revalidatePath("/sitemap.xml");
@@ -343,6 +369,7 @@ export async function publishDueArticles(): Promise<number> {
       entityId: article.id,
       after: { slug: article.slug, status: "published" },
     });
+    revalidatePath("/");
     revalidatePath("/articles");
     revalidatePath(`/articles/${article.slug}`);
   }
