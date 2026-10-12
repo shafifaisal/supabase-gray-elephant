@@ -35,7 +35,7 @@ export default async function AdminLayout({
     <div className="min-h-full bg-secondary/25">
       <div className="container-page py-8">
         <div className="flex flex-col gap-6 lg:flex-row">
-          <aside className="lg:w-[200px] lg:shrink-0">
+          <aside className="lg:w-[200px] lg:shrink-0 lg:border-r lg:border-border">
             <nav aria-label="Admin sections">
               <ul className="flex flex-wrap gap-1 lg:flex-col">
                 {NAV.map((item) => {
