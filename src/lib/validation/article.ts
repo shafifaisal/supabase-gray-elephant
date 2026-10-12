@@ -13,6 +13,18 @@ export const ARTICLE_STATUSES = [
 
 export type ArticleStatus = (typeof ARTICLE_STATUSES)[number];
 
+/**
+ * How an article body is authored and stored.
+ * `markdown` is the legacy format (rows created before the rich text editor);
+ * `html` is the rich text editor output.
+ */
+export const ARTICLE_BODY_FORMATS = ["markdown", "html"] as const;
+
+export type ArticleBodyFormat = (typeof ARTICLE_BODY_FORMATS)[number];
+
+/** Upper bound on submitted body markup. Generous for long-form articles. */
+export const MAX_BODY_LENGTH = 500_000;
+
 const uuid = z.string().uuid();
 
 /** Slug rules: lowercase, hyphen separated, no leading/trailing hyphen. */
@@ -48,10 +60,11 @@ export const articleSchema = z.object({
     .max(500, "Excerpt must be 500 characters or fewer")
     .optional()
     .or(z.literal("")),
-  body_md: z
+  body_html: z
     .string()
-    .max(100_000, "Article body must be 100,000 characters or fewer")
+    .max(MAX_BODY_LENGTH, "Article body must be 500,000 characters or fewer")
     .default(""),
+  body_format: z.enum(ARTICLE_BODY_FORMATS).default("html"),
   category_id: optionalUuid,
   seo_title: z
     .string()

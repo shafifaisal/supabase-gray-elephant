@@ -54,8 +54,17 @@ export async function uploadFeaturedImage(params: {
   userId: string;
   file: File;
   altText?: string | null;
+  /**
+   * Minimum accepted dimensions. Default to the featured-image floor; inline
+   * body images pass a smaller floor because diagrams and icons are legitimately
+   * narrow.
+   */
+  minWidth?: number;
+  minHeight?: number;
 }): Promise<FeaturedImageResult> {
   const { userId, file } = params;
+  const minWidth = params.minWidth ?? FEATURED_IMAGE_MIN_WIDTH;
+  const minHeight = params.minHeight ?? FEATURED_IMAGE_MIN_HEIGHT;
 
   if (file.size === 0) {
     return { ok: false, error: "The selected file is empty." };
@@ -104,10 +113,10 @@ export async function uploadFeaturedImage(params: {
       error: `Images must be at most ${FEATURED_IMAGE_MAX_DIMENSION}×${FEATURED_IMAGE_MAX_DIMENSION} pixels.`,
     };
   }
-  if (width < FEATURED_IMAGE_MIN_WIDTH || height < FEATURED_IMAGE_MIN_HEIGHT) {
+  if (width < minWidth || height < minHeight) {
     return {
       ok: false,
-      error: `Images must be at least ${FEATURED_IMAGE_MIN_WIDTH}×${FEATURED_IMAGE_MIN_HEIGHT} pixels.`,
+      error: `Images must be at least ${minWidth}×${minHeight} pixels.`,
     };
   }
 

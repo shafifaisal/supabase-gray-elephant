@@ -20,7 +20,7 @@
  * hide the problem from the only people able to fix it.
  */
 
-import { renderMarkdown, markdownToPlainText } from "@/lib/content/markdown";
+import { renderMarkdown, htmlToPlainText, sanitizeForRender } from "@/lib/content/markdown";
 import { createClient } from "@/lib/supabase/server";
 import { createBuildClient } from "@/lib/supabase/build";
 import type { ArticleStatus } from "@/lib/validation/article";
@@ -54,6 +54,13 @@ export interface ArticleRow {
   excerpt: string | null;
   body_md: string;
   body_html: string;
+  /**
+   * How `body_html` was produced. `markdown` marks rows authored through the
+   * legacy Markdown editor; `html` marks rows authored in the rich text
+   * editor. Existing rows default to `markdown`, so their rendering is
+   * unchanged.
+   */
+  body_format: "markdown" | "html";
   status: ArticleStatus;
   author_id: string | null;
   category_id: string | null;
@@ -78,7 +85,7 @@ export interface CategoryRow {
   position: number;
 }
 
-const ARTICLE_COLUMNS = "id, slug, title, excerpt, body_md, body_html, status, author_id, category_id, featured_image_id, seo_title, meta_description, og_title, og_description, canonical_url, is_noindex, scheduled_for, published_at, created_at, updated_at";
+const ARTICLE_COLUMNS = "id, slug, title, excerpt, body_md, body_html, body_format, status, author_id, category_id, featured_image_id, seo_title, meta_description, og_title, og_description, canonical_url, is_noindex, scheduled_for, published_at, created_at, updated_at";
 
 /**
  * Returns published, publicly visible articles.
@@ -407,17 +414,32 @@ export async function slugExists(
 }
 
 /**
- * Renders and sanitises article content.
- * Shared by the write path so stored HTML is always sanitised.
+ * Turns submitted content into the two stored representations plus an excerpt.
+ *
+ * Shared by the write path so stored HTML is always sanitised. The rich text
+ * editor submits HTML (`format: "html"`); legacy or programmatic callers may
+ * still submit Markdown (`format: "markdown"`). Both end up as sanitised HTML
+ * in `body_html`, which is what the public site renders.
+ *
+ * `body_md` is retained for Markdown rows so their original source is never
+ * lost. Rich text rows store an empty `body_md` — their source is `body_html`.
  */
 export function prepareArticleContent(input: {
-  body_md: string;
+  body: string;
+  format: "markdown" | "html";
   excerpt?: string;
-}): { body_html: string; excerpt: string } {
-  const body_html = renderMarkdown(input.body_md);
+}): { body_html: string; body_md: string; excerpt: string } {
+  const isHtml = input.format === "html";
+
+  const body_html = isHtml
+    ? sanitizeForRender(input.body)
+    : renderMarkdown(input.body);
+
+  const body_md = isHtml ? "" : input.body;
+
   const excerpt = input.excerpt?.trim()
     ? input.excerpt.trim()
-    : markdownToPlainText(input.body_md);
+    : htmlToPlainText(body_html);
 
-  return { body_html, excerpt };
+  return { body_html, body_md, excerpt };
 }

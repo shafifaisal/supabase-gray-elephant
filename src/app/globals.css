@@ -102,6 +102,15 @@
 
   .prose-guides {
     line-height: 1.75;
+    overflow-wrap: break-word;
+  }
+
+  .prose-guides h1 {
+    margin-top: 2.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 
   .prose-guides h2 {
@@ -117,6 +126,30 @@
     margin-bottom: 0.5rem;
     font-size: 1.25rem;
     font-weight: 600;
+  }
+
+  .prose-guides h4 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+
+  .prose-guides h5 {
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .prose-guides h6 {
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-muted-foreground);
   }
 
   .prose-guides p {
@@ -137,10 +170,74 @@
     list-style: decimal;
   }
 
+  .prose-guides li {
+    margin-block: 0.25rem;
+  }
+
   .prose-guides a {
     color: var(--color-primary);
     text-decoration: underline;
     text-underline-offset: 2px;
+  }
+
+  .prose-guides mark {
+    background-color: #fef08a;
+    color: inherit;
+    padding-inline: 0.1em;
+  }
+
+  .prose-guides blockquote {
+    margin-block: 1.25rem;
+    border-inline-start: 3px solid var(--color-border);
+    padding-inline-start: 1rem;
+    color: var(--color-muted-foreground);
+    font-style: italic;
+  }
+
+  .prose-guides hr {
+    margin-block: 2rem;
+    border: 0;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .prose-guides img {
+    max-width: 100%;
+    height: auto;
+    margin-block: 1.25rem;
+    border-radius: 0.5rem;
+  }
+
+  .prose-guides figure {
+    margin-block: 1.5rem;
+  }
+
+  .prose-guides figcaption {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--color-muted-foreground);
+    text-align: center;
+  }
+
+  .prose-guides table {
+    width: 100%;
+    margin-block: 1.5rem;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 0.9375rem;
+  }
+
+  .prose-guides th,
+  .prose-guides td {
+    border: 1px solid var(--color-border);
+    padding: 0.5rem 0.75rem;
+    text-align: start;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+  }
+
+  .prose-guides thead th {
+    background-color: var(--color-secondary);
+    font-weight: 600;
   }
 
   .prose-guides code {
@@ -149,5 +246,50 @@
     padding: 0.125rem 0.35rem;
     font-family: var(--font-mono), monospace;
     font-size: 0.9em;
+  }
+
+  .prose-guides pre {
+    margin-block: 1.25rem;
+    overflow-x: auto;
+    border-radius: 0.5rem;
+    background-color: var(--color-secondary);
+    padding: 0.75rem 1rem;
+  }
+
+  .prose-guides pre code {
+    background-color: transparent;
+    padding: 0;
+    font-size: 0.875rem;
+  }
+
+  /* Editor canvas: no default focus ring, and a subtle placeholder. */
+  .ProseMirror {
+    outline: none;
+  }
+
+  .ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: inline-start;
+    height: 0;
+    color: var(--color-muted-foreground);
+    pointer-events: none;
+  }
+
+  .ProseMirror img.ProseMirror-selectednode {
+    outline: 3px solid var(--color-ring);
+  }
+
+  .ProseMirror table .selectedCell::after {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background-color: color-mix(in oklab, var(--color-primary) 15%, transparent);
+    content: "";
+    pointer-events: none;
+  }
+
+  .ProseMirror td,
+  .ProseMirror th {
+    position: relative;
   }
 }

@@ -8,6 +8,7 @@ import {
 } from "@/components/admin/article-editor";
 import { roleAtLeast, requireRole } from "@/lib/auth/session";
 import { getArticleForEdit, getCategories, getRevisions } from "@/lib/content/articles";
+import { renderMarkdown } from "@/lib/content/markdown";
 import { getPublicMediaMap } from "@/lib/media/urls";
 import { formatDateTime } from "@/lib/format";
 
@@ -56,6 +57,14 @@ export default async function EditArticlePage({
       }
     : null;
 
+  // The visual editor always starts from HTML. Legacy Markdown rows already
+  // have a rendered `body_html`; fall back to rendering the Markdown only if
+  // that is empty (for example a row written directly by a script).
+  const initialBodyHtml =
+    article.body_format === "html" || article.body_html.trim()
+      ? article.body_html
+      : renderMarkdown(article.body_md);
+
   return (
     <div className="space-y-6">
       {created ? (
@@ -96,7 +105,7 @@ export default async function EditArticlePage({
           title: article.title,
           slug: article.slug,
           excerpt: article.excerpt ?? "",
-          body_md: article.body_md,
+          body_html: initialBodyHtml,
           category_id: article.category_id ?? "",
           seo_title: article.seo_title ?? "",
           meta_description: article.meta_description ?? "",

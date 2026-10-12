@@ -25,7 +25,7 @@ export default async function NewArticlePage() {
         title: "",
         slug: "",
         excerpt: "",
-        body_md: "",
+        body_html: "",
         category_id: "",
         seo_title: "",
         meta_description: "",

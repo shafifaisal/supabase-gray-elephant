@@ -3,9 +3,10 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 
 import { ActionButton } from "@/components/admin/action-button";
+import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { ArticleThumbnail } from "@/components/articles/article-thumbnail";
 import { slugifyTitle } from "@/lib/format";
-import type { ActionState } from "@/lib/validation/article";
+import { MAX_BODY_LENGTH, type ActionState } from "@/lib/validation/article";
 
 import { uploadArticleImageAction, updateArticleImageAltAction } from "@/app/admin/articles/image-actions";
 
@@ -67,7 +68,12 @@ export interface ArticleFormValues {
   title: string;
   slug: string;
   excerpt: string;
-  body_md: string;
+  /**
+   * Initial body as sanitised HTML. For legacy Markdown articles the caller
+   * renders the Markdown to HTML first, so the visual editor always receives
+   * HTML. Saving it records `body_format = 'html'`.
+   */
+  body_html: string;
   category_id: string;
   seo_title: string;
   meta_description: string;
@@ -84,7 +90,7 @@ const inputClasses =
 const labelClasses = "mb-1.5 block text-sm font-medium";
 
 /**
- * Article editor with a Markdown editor and preview.
+ * Article editor with a visual (WYSIWYG) rich text body and a preview.
  *
  * The preview is rendered by the server through `/api/preview`, which applies
  * exactly the same sanitizer as the published page. Previewing untrusted HTML
@@ -106,7 +112,7 @@ export function ArticleEditor({
   featuredImage?: FeaturedImageValue | null;
 }) {
   const [state, formAction] = useActionState(action, {});
-  const [body, setBody] = useState(values.body_md);
+  const [body, setBody] = useState(values.body_html);
   const [preview, setPreview] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [slug, setSlug] = useState(values.slug);
@@ -132,7 +138,7 @@ export function ArticleEditor({
         const response = await fetch("/api/preview", {
           method: "POST",
           headers: { "Content-Type": "text/plain" },
-          body: body.slice(0, 100_000),
+          body: body.slice(0, MAX_BODY_LENGTH),
           signal: controller.signal,
         });
 
@@ -320,24 +326,24 @@ export function ArticleEditor({
         </div>
 
         <div>
-          <label htmlFor="body_md" className={labelClasses}>
-            Body (Markdown)
+          <label htmlFor="body_html" className={labelClasses}>
+            Body
           </label>
-          <textarea
-            id="body_md"
-            name="body_md"
-            rows={20}
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-            className={`${inputClasses} font-mono`}
-            aria-describedby="body-hint"
+          {/* The editor serialises sanitised HTML into `body_html`; the server is
+              still the authority and sanitises it again before storage. */}
+          <input type="hidden" name="body_format" value="html" />
+          <RichTextEditor
+            name="body_html"
+            defaultValue={values.body_html}
+            describedBy="body-hint"
+            onHtmlChange={setBody}
           />
           <p id="body-hint" className="mt-1 text-xs text-muted-foreground">
-            Headings start at <code>##</code> — the article title is the
-            page&rsquo;s <code>&lt;h1&gt;</code>. Raw HTML is stripped.
+            Use the toolbar to format text, add headings, lists, links, images
+            and tables. Formatting is cleaned and made safe when you save.
           </p>
-          {state.fieldErrors?.body_md ? (
-            <p className="mt-1 text-sm text-danger">{state.fieldErrors.body_md}</p>
+          {state.fieldErrors?.body_html ? (
+            <p className="mt-1 text-sm text-danger">{state.fieldErrors.body_html}</p>
           ) : null}
         </div>
 

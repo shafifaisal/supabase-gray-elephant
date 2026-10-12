@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   escapeHtml,
+  htmlToPlainText,
   markdownToPlainText,
   renderMarkdown,
+  sanitizeForRender,
 } from "@/lib/content/markdown";
 
 /**
@@ -53,9 +55,18 @@ describe("renderMarkdown — dangerous input", () => {
     expect(html).not.toContain("<iframe");
   });
 
-  it("strips style attributes", () => {
-    const html = renderMarkdown('<p style="position:fixed;inset:0">x</p>');
-    expect(html).not.toContain("style");
+  it("strips dangerous CSS while keeping permitted properties", () => {
+    const html = renderMarkdown('<p style="position:fixed;inset:0;color:red">x</p>');
+    expect(html).not.toContain("position");
+    expect(html).not.toContain("inset");
+    expect(html).toContain("color:red");
+  });
+
+  it("rejects CSS url() payloads", () => {
+    const html = renderMarkdown(
+      '<p style="background-color:url(javascript:alert(1))">x</p>',
+    );
+    expect(html.toLowerCase()).not.toContain("javascript");
   });
 
   it("strips <style> blocks", () => {
@@ -158,13 +169,13 @@ describe("renderMarkdown — legitimate content", () => {
   });
 
   /**
-   * The article title is rendered as the page's <h1>, so body content starts at
-   * <h2>. Allowing <h1> inside the body would produce two competing h1s and
-   * damage the document outline.
+   * The visual editor offers H1–H6, so the body allowlist must keep H1. The
+   * article title still renders as the page's primary heading; authors who want
+   * a tidy outline can simply begin their body at H2.
    */
-  it("strips an h1 from the body so the title stays the only h1", () => {
+  it("keeps an h1 so the editor's Heading 1 renders", () => {
     const html = renderMarkdown("# My Heading");
-    expect(html).not.toContain("<h1");
+    expect(html).toContain("<h1>My Heading</h1>");
   });
 });
 
@@ -197,6 +208,91 @@ describe("markdownToPlainText", () => {
 
   it("strips scripts from the extracted text", () => {
     expect(markdownToPlainText("Hello <script>alert(1)</script>")).not.toContain("alert");
+  });
+});
+
+describe("sanitizeForRender — rich text editor output", () => {
+  it("keeps colour, font size and alignment", () => {
+    const html = sanitizeForRender(
+      '<p style="text-align:center"><span style="color:#ff0000;font-size:24px">Hi</span></p>',
+    );
+    expect(html).toContain("text-align:center");
+    expect(html).toContain("color:#ff0000");
+    expect(html).toContain("font-size:24px");
+  });
+
+  it("keeps semantic headings h1–h6", () => {
+    const html = sanitizeForRender(
+      "<h1>1</h1><h2>2</h2><h3>3</h3><h4>4</h4><h5>5</h5><h6>6</h6>",
+    );
+    for (const tag of ["h1", "h2", "h3", "h4", "h5", "h6"]) {
+      expect(html).toContain(`<${tag}>`);
+    }
+  });
+
+  it("keeps ul, ol, li, blockquote and hr", () => {
+    const html = sanitizeForRender(
+      "<ul><li>a</li></ul><ol><li>b</li></ol><blockquote>q</blockquote><hr>",
+    );
+    expect(html).toContain("<ul>");
+    expect(html).toContain("<ol>");
+    expect(html).toContain("<li>");
+    expect(html).toContain("<blockquote>");
+    expect(html).toContain("<hr");
+  });
+
+  it("keeps tables with header and body cells", () => {
+    const html = sanitizeForRender(
+      "<table><thead><tr><th>H</th></tr></thead><tbody><tr><td>1</td></tr></tbody></table>",
+    );
+    expect(html).toContain("<table>");
+    expect(html).toContain("<th>");
+    expect(html).toContain("<td>");
+  });
+
+  it("keeps image width and alignment hints", () => {
+    const html = sanitizeForRender(
+      '<img src="https://x.example/a.png" alt="a" data-width="50%" data-align="center" style="width: 50%; display: block; margin-left: auto; margin-right: auto">',
+    );
+    expect(html).toContain('data-width="50%"');
+    expect(html).toContain('data-align="center"');
+    expect(html).toContain("width:50%");
+  });
+
+  it("strips javascript: image sources and event handlers", () => {
+    const html = sanitizeForRender(
+      '<img src="javascript:alert(1)" onerror="alert(2)">',
+    );
+    expect(html.toLowerCase()).not.toContain("javascript");
+    expect(html.toLowerCase()).not.toContain("onerror");
+  });
+
+  it("keeps a safe link and forces safe rel/target attributes", () => {
+    const html = sanitizeForRender(
+      '<a href="https://example.com" target="_blank">x</a>',
+    );
+    expect(html).toContain('href="https://example.com"');
+    expect(html).toContain("noopener");
+  });
+
+  it("drops scripts entirely", () => {
+    const html = sanitizeForRender("<p>ok</p><script>alert(1)</script>");
+    expect(html.toLowerCase()).not.toContain("<script");
+    expect(html).toContain("ok");
+  });
+});
+
+describe("htmlToPlainText", () => {
+  it("extracts text from rich HTML", () => {
+    expect(htmlToPlainText("<p>Hello <strong>world</strong></p>")).toBe(
+      "Hello world",
+    );
+  });
+
+  it("truncates long rich text at a word boundary", () => {
+    expect(htmlToPlainText("<p>alpha bravo charlie delta</p>", 13)).toBe(
+      "alpha bravo…",
+    );
   });
 });
 

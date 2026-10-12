@@ -58,7 +58,8 @@ function parseForm(formData: FormData) {
     title: formData.get("title"),
     slug: formData.get("slug"),
     excerpt: formData.get("excerpt") ?? "",
-    body_md: formData.get("body_md") ?? "",
+    body_html: formData.get("body_html") ?? "",
+    body_format: formData.get("body_format") ?? "html",
     category_id: formData.get("category_id") ?? "",
     seo_title: formData.get("seo_title") ?? "",
     meta_description: formData.get("meta_description") ?? "",
@@ -93,7 +94,11 @@ export async function createArticleAction(
     return { fieldErrors: { slug: "This slug is already in use" } };
   }
 
-  const { body_html, excerpt } = prepareArticleContent(input);
+  const { body_html, body_md, excerpt } = prepareArticleContent({
+    body: input.body_html,
+    format: input.body_format,
+    excerpt: input.excerpt,
+  });
 
   // An editor/admin who chose "Save and publish".
   const publishNow = canPublish && formData.get("intent") === "publish";
@@ -108,8 +113,9 @@ export async function createArticleAction(
       slug: input.slug,
       title: input.title,
       excerpt,
-      body_md: input.body_md,
+      body_md,
       body_html,
+      body_format: input.body_format,
       status: "draft",
       author_id: user.id,
       category_id: input.category_id,
@@ -190,7 +196,11 @@ export async function updateArticleAction(
     return { fieldErrors: { slug: "This slug is already in use" } };
   }
 
-  const { body_html, excerpt } = prepareArticleContent(input);
+  const { body_html, body_md, excerpt } = prepareArticleContent({
+    body: input.body_html,
+    format: input.body_format,
+    excerpt: input.excerpt,
+  });
 
   // An editor/admin who chose "Save and publish" on a not-yet-published article.
   const publishNow =
@@ -202,8 +212,9 @@ export async function updateArticleAction(
     slug: input.slug,
     title: input.title,
     excerpt,
-    body_md: input.body_md,
+    body_md,
     body_html,
+    body_format: input.body_format,
     category_id: input.category_id,
     seo_title: input.seo_title || null,
     meta_description: input.meta_description || null,
@@ -250,7 +261,7 @@ export async function updateArticleAction(
     revision_number: (count ?? 0) + 1,
     title: input.title,
     excerpt,
-    body_md: input.body_md,
+    body_md,
     body_html,
     status: publishNow ? "published" : existing.status,
     change_note: String(formData.get("change_note") ?? "").slice(0, 200) || null,

@@ -27,6 +27,7 @@ import {
   getPublishedArticles,
   getPublishedSlugsLive,
   getRelatedArticles,
+  prepareArticleContent,
 } from "@/lib/content/articles";
 
 const ROW = { id: "a1", slug: "a-guide", title: "A guide" };
@@ -156,5 +157,42 @@ describe("admin reads stay strict", () => {
     const categories = [{ id: "c1", slug: "security", name: "Security" }];
     mockQuery({ data: categories, error: null });
     expect(await getCategories()).toEqual(categories);
+  });
+});
+
+describe("prepareArticleContent", () => {
+  it("sanitises rich text HTML and derives an excerpt", () => {
+    const result = prepareArticleContent({
+      body: "<h2>Heading</h2><p>Hello <script>alert(1)</script>world</p>",
+      format: "html",
+    });
+
+    expect(result.body_html).toContain("<h2>Heading</h2>");
+    expect(result.body_html.toLowerCase()).not.toContain("<script");
+    // Rich text rows keep their source in body_html, not body_md.
+    expect(result.body_md).toBe("");
+    expect(result.excerpt).toContain("Heading");
+    expect(result.excerpt).toContain("Hello");
+  });
+
+  it("keeps the markdown source for markdown rows", () => {
+    const result = prepareArticleContent({
+      body: "## Hi\n\nSome **bold** text",
+      format: "markdown",
+    });
+
+    expect(result.body_html).toContain("<h2>Hi</h2>");
+    expect(result.body_md).toBe("## Hi\n\nSome **bold** text");
+    expect(result.excerpt).toContain("Some bold text");
+  });
+
+  it("prefers an explicit excerpt over a generated one", () => {
+    const result = prepareArticleContent({
+      body: "<p>Body copy</p>",
+      format: "html",
+      excerpt: "  Custom summary  ",
+    });
+
+    expect(result.excerpt).toBe("Custom summary");
   });
 });
