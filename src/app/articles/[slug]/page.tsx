@@ -13,6 +13,7 @@ import { ArticleThumbnail } from "@/components/articles/article-thumbnail";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbNode } from "@/lib/seo/structured-data";
 import { getPublicMediaMap, type PublicMedia } from "@/lib/media/urls";
+import { getSiteIdentity } from "@/lib/settings/public";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 import { formatDate } from "@/lib/format";
 
@@ -29,12 +30,12 @@ async function resolveFeaturedImage(
  * Resolves the effective title, description and canonical URL for an article,
  * falling back to sensible values when the editor left them blank.
  */
-function resolveMetadata(article: ArticleRow) {
+function resolveMetadata(article: ArticleRow, brandName: string) {
   const seoTitle = article.seo_title || article.title;
   const description =
     article.meta_description ||
     article.excerpt ||
-    `${article.title} — a practical article from ${siteConfig.name}.`;
+    `${article.title} — a practical article from ${brandName}.`;
   const url = absoluteUrl(`/articles/${article.slug}`);
 
   return { seoTitle, description, url };
@@ -52,8 +53,9 @@ function articleStructuredData(params: {
   url: string;
   article: ArticleRow;
   image: PublicMedia | null;
+  brandName: string;
 }) {
-  const { seoTitle, description, url, article, image } = params;
+  const { seoTitle, description, url, article, image, brandName } = params;
 
   return {
     "@context": "https://schema.org",
@@ -72,13 +74,13 @@ function articleStructuredData(params: {
     author: {
       "@type": "Organization",
       "@id": `${siteConfig.url}/#organization`,
-      name: siteConfig.name,
+      name: brandName,
       url: siteConfig.url,
     },
     publisher: {
       "@type": "Organization",
       "@id": `${siteConfig.url}/#organization`,
-      name: siteConfig.name,
+      name: brandName,
       url: siteConfig.url,
     },
   };
@@ -106,7 +108,8 @@ export async function generateMetadata({
     };
   }
 
-  const { seoTitle, description, url } = resolveMetadata(article);
+  const { name: brandName } = await getSiteIdentity();
+  const { seoTitle, description, url } = resolveMetadata(article, brandName);
   const image = await resolveFeaturedImage(article);
 
   const ogImage = image
@@ -173,7 +176,8 @@ export default async function ArticlePage({
 
   if (!article) notFound();
 
-  const { seoTitle, description, url } = resolveMetadata(article);
+  const { name: brandName } = await getSiteIdentity();
+  const { seoTitle, description, url } = resolveMetadata(article, brandName);
   const image = await resolveFeaturedImage(article);
 
   const breadcrumb = breadcrumbNode([
@@ -189,7 +193,14 @@ export default async function ArticlePage({
           attributed to the publishing Organization. "<" is escaped so the
           payload cannot terminate the script element. */}
       <JsonLd
-        data={articleStructuredData({ seoTitle, description, url, article, image })}
+        data={articleStructuredData({
+          seoTitle,
+          description,
+          url,
+          article,
+          image,
+          brandName,
+        })}
       />
       {/* Breadcrumb structured data, matching the visible breadcrumb below. */}
       <JsonLd data={breadcrumb} />

@@ -37,17 +37,30 @@ export function serializeJsonLd(data: unknown): string {
 }
 
 /**
+ * The publisher's public identity. Defaults to the static `siteConfig`, but the
+ * root layout passes the admin-editable overrides from `site_settings` so the
+ * Organization/WebSite entities match what the header and titles advertise.
+ */
+export interface SiteIdentityOverride {
+  name?: string;
+  description?: string;
+  contactEmail?: string;
+}
+
+/**
  * Organization node for the publisher. Shared by the site-level graph and by
  * individual articles so the publisher identity is identical everywhere.
  */
-export function organizationNode(): JsonLdNode {
+export function organizationNode(
+  identity: SiteIdentityOverride = {},
+): JsonLdNode {
   return {
     "@type": "Organization",
     "@id": `${siteConfig.url}/#organization`,
-    name: siteConfig.name,
+    name: identity.name ?? siteConfig.name,
     url: siteConfig.url,
-    description: siteConfig.description,
-    email: siteConfig.contactEmail,
+    description: identity.description ?? siteConfig.description,
+    email: identity.contactEmail ?? siteConfig.contactEmail,
     // Google recommends a logo for the Organization entity. The dimensions are
     // the real ones of the shipped asset (public/logo.png, 64x64).
     logo: {
@@ -64,13 +77,13 @@ export function organizationNode(): JsonLdNode {
  * a sitelinks search box. The search URL points at the articles index, which is
  * the only indexable search surface.
  */
-export function webSiteNode(): JsonLdNode {
+export function webSiteNode(identity: SiteIdentityOverride = {}): JsonLdNode {
   return {
     "@type": "WebSite",
     "@id": `${siteConfig.url}/#website`,
     url: siteConfig.url,
-    name: siteConfig.name,
-    description: siteConfig.description,
+    name: identity.name ?? siteConfig.name,
+    description: identity.description ?? siteConfig.description,
     publisher: { "@id": `${siteConfig.url}/#organization` },
     inLanguage: "en",
     potentialAction: {
@@ -89,10 +102,12 @@ export function webSiteNode(): JsonLdNode {
  * under one @graph lets an article page extend the same publisher/website
  * entities by @id rather than repeating them.
  */
-export function siteGraph(): { "@context": string; "@graph": JsonLdNode[] } {
+export function siteGraph(
+  identity: SiteIdentityOverride = {},
+): { "@context": string; "@graph": JsonLdNode[] } {
   return {
     "@context": "https://schema.org",
-    "@graph": [organizationNode(), webSiteNode()],
+    "@graph": [organizationNode(identity), webSiteNode(identity)],
   };
 }
 

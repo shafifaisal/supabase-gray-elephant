@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { LegalPage, LegalSection } from "@/components/layout/legal-page";
-import { getContactEmail, getLegalHtml } from "@/lib/settings/public";
-import { siteConfig } from "@/lib/site";
+import {
+  getBrandName,
+  getContactEmail,
+  getLegalHtml,
+} from "@/lib/settings/public";
 
 export const metadata: Metadata = {
   title: "Terms of Use",
@@ -15,21 +18,22 @@ export const metadata: Metadata = {
 const UPDATED = "2026-01-15";
 
 export default async function TermsPage() {
-  const [cmsHtml, contactEmail] = await Promise.all([
+  const [cmsHtml, contactEmail, brandName] = await Promise.all([
     getLegalHtml("legal_terms_html"),
     getContactEmail(),
+    getBrandName(),
   ]);
 
   return (
     <LegalPage title="Terms of Use" updated={UPDATED} cmsHtml={cmsHtml}>
       <p>
-        These terms apply when you use {siteConfig.name}. By using the site you
+        These terms apply when you use {brandName}. By using the site you
         agree to them. They are written to be read, not to bury anything.
       </p>
 
       <LegalSection id="what-this-is">What this site is</LegalSection>
       <p>
-        {siteConfig.name} provides free, browser-based tools for generating
+        {brandName} provides free, browser-based tools for generating
         passwords, passphrases and random strings, and for estimating password
         strength and entropy. The tools are provided for your personal and
         professional use.

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { logoAlt } from "@/lib/seo/alt-text";
+import { siteConfig } from "@/lib/site";
 
 export interface NavItem {
   href: string;
@@ -43,7 +44,7 @@ export function BrandMark({ className = "h-6 w-6" }: { className?: string }) {
   );
 }
 
-export function Wordmark() {
+export function Wordmark({ brandName }: { brandName?: string }) {
   return (
     <Link
       href="/"
@@ -51,14 +52,14 @@ export function Wordmark() {
     >
       <Image
         src="/logo.png"
-        alt={logoAlt()}
+        alt={logoAlt(brandName)}
         width={64}
         height={64}
         priority
         className="h-8 w-8 object-contain"
         aria-hidden="true"
       />
-      <span>iPassGenerator</span>
+      <span>{brandName ?? siteConfig.name}</span>
     </Link>
   );
 }

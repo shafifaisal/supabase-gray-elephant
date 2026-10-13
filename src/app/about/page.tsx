@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Prose } from "@/components/ui/primitives";
-import { siteConfig } from "@/lib/site";
+import { getBrandName } from "@/lib/settings/public";
 import { tools } from "@/lib/tools";
 import { toolPath } from "@/lib/tools";
 import { WORDLIST_ATTRIBUTION } from "@/lib/crypto/wordlist";
@@ -14,7 +14,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/about" },
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const brandName = await getBrandName();
+
   return (
     <div className="container-page py-10">
       <div className="max-w-3xl">
@@ -22,7 +24,7 @@ export default function AboutPage() {
 
         <Prose>
           <p className="text-lg text-muted-foreground">
-            {siteConfig.name} exists because generating a password should not
+            {brandName} exists because generating a password should not
             require trusting a stranger&rsquo;s server with the result.
           </p>
 

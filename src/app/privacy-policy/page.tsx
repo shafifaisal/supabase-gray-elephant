@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { LegalPage, LegalSection } from "@/components/layout/legal-page";
-import { getContactEmail, getLegalHtml } from "@/lib/settings/public";
-import { siteConfig } from "@/lib/site";
+import {
+  getBrandName,
+  getContactEmail,
+  getLegalHtml,
+} from "@/lib/settings/public";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -16,15 +19,16 @@ export const metadata: Metadata = {
 const UPDATED = "2026-10-13";
 
 export default async function PrivacyPolicyPage() {
-  const [cmsHtml, contactEmail] = await Promise.all([
+  const [cmsHtml, contactEmail, brandName] = await Promise.all([
     getLegalHtml("legal_privacy_policy_html"),
     getContactEmail(),
+    getBrandName(),
   ]);
 
   return (
     <LegalPage title="Privacy Policy" updated={UPDATED} cmsHtml={cmsHtml}>
       <p>
-        This policy explains what {siteConfig.name} collects when you use this
+        This policy explains what {brandName} collects when you use this
         website, and — just as importantly — what it does not. The short version:
         the password tools on this site do the work on your own device, and
         nothing you generate is sent to us.

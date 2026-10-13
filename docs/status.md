@@ -593,3 +593,88 @@ explicitly left as operator actions. Nothing below claims they were performed.
 - The value `NEXT_PUBLIC_GA_MEASUREMENT_ID` is read **server-side** in the
   force-dynamic API route (it is not inlined into the client bundle), so adding
   it on Vercel requires a redeploy to take effect.
+
+
+---
+
+## Phase: admin settings actually appear on the site (2026-10-13)
+
+**Reported symptom.** An admin set Brand name, Tagline, Footer text, Contact
+email and Site description in `/admin/settings`; the rows were saved (verified
+against the database) but the public site never changed.
+
+**Root causes.** Three independent defects:
+
+1. **No revalidation.** Every public page is prerendered at build (`○` in the
+   route table). `saveSettingAction`/`deleteSettingAction` called
+   `revalidatePath("/admin/settings")` only, so the baked HTML kept serving the
+   build-time values until a redeploy. A stale `.next` also showed how fragile
+   this was: an incremental build reused a cached render and baked the *old*
+   value.
+2. **Settings were never wired.** `site_tagline` and `site_description` had
+   helpers that nothing called; `brand_name` reached only the footer (not the
+   header wordmark, `<title>` suffix or structured data); `contact_email`
+   reached only the legal pages; `maintenance_mode` was stored but no holding
+   page existed. The admin hints promised behaviour that was not implemented.
+3. **Legal/about body copy** hard-coded `siteConfig.name` rather than the
+   effective brand.
+
+**Fix.**
+
+- **Revalidation**: settings save/delete now also call
+  `revalidatePath("/", "layout")`, so the whole statically-prerendered site is
+  regenerated on demand.
+- **Wiring** (all through `getSiteIdentity()`/the existing helpers):
+  - brand name → header wordmark, `<title>` template suffix, footer,
+    Organization/WebSite JSON-LD, article publisher/author, legal/about body.
+  - tagline → first sentence of the footer blurb and the default page title.
+  - site description → homepage meta description and the JSON-LD description.
+  - contact email → contact page (mailto) as well as the legal pages.
+  - maintenance mode → a real 503 holding page served from the Edge proxy.
+- **Maintenance mode**: `src/proxy.ts` gates public *navigations* only; `/admin`,
+  `/login`, `/api`, `/_next` and file-like paths are bypassed so the owner can
+  always switch it back off. The flag is read through the anon key (RLS still
+  applies), memoised for 15 s in the isolate, and **fails closed** — any error,
+  missing config or unparseable value leaves the site up.
+- `getPublicSettings` is now wrapped in React `cache`, so a request reads
+  `site_settings` once instead of once per helper.
+- `asBoolean` moved to `src/lib/settings/parse.ts` (no `server-only`, no React)
+  so the proxy and the settings layer share one implementation.
+
+**Files created**
+`src/lib/maintenance.ts` (+ test), `src/lib/settings/parse.ts`, `src/proxy.test.ts`.
+
+**Files changed**
+`src/app/layout.tsx` (async `generateMetadata` + identity + header prop),
+`src/components/layout/header.tsx`, `src/components/layout/nav-links.tsx`,
+`src/components/layout/footer.tsx`, `src/app/contact/page.tsx`,
+`src/app/page.tsx`, `src/app/about/page.tsx`, `src/app/privacy-policy/page.tsx`,
+`src/app/terms/page.tsx`, `src/app/cookie-policy/page.tsx`,
+`src/app/articles/[slug]/page.tsx`, `src/app/articles/category/[slug]/page.tsx`,
+`src/app/admin/settings/actions.ts`, `src/app/admin/settings/page.tsx`,
+`src/lib/settings/public.ts`, `src/lib/seo/structured-data.ts`,
+`src/lib/settings/public.test.ts`, `src/lib/seo/structured-data.test.ts`,
+`src/proxy.ts`.
+
+**Verification (all executed)**
+| Gate | Result |
+|---|---|
+| `npm run lint` | pass, 0 errors/warnings |
+| `npm run typecheck` | pass |
+| `npm test` | **295/295** (was 275; +20 new: identity, maintenance, proxy gate) |
+| `npm run build` | pass, 32 pages; `/`, `/about`, `/contact`, `/privacy-policy`, `/terms`, `/cookie-policy` still `○ (Static)` |
+| `next start` route check | `/`, `/contact`, `/about`, `/privacy-policy`, `/terms`, `/cookie-policy`, `/articles`, `/tools`, `/api/analytics/config` all 200 |
+| baked-HTML check | DB tagline in the footer blurb; DB contact email on the contact page, the legal pages and in JSON-LD; brand name in the privacy/terms/about/cookie body; `/api/analytics/config` returns `{"enabled":true,"measurementId":"G-F821LK82PY",…}` |
+| proxy test | maintenance ON ⇒ public navigation 503, `/admin` and `/api` never 503, read failure ⇒ still 200 |
+
+**Known limitations — recorded, not hidden**
+- `revalidatePath("/", "layout")` was verified by the route table, the build and
+  the unit/proxy tests, but was **not** exercised against the live Supabase
+  database from this environment (that needs an authenticated admin session and
+  a real write). The mechanism is the same one the article publish actions
+  already rely on to refresh the statically-prerendered homepage.
+- Maintenance mode was tested with a stubbed settings read (`src/proxy.test.ts`)
+  and confirmed OFF against the real database; it was not switched ON against
+  live data.
+- Metadata is regenerated at build/revalidation time, so a title/meta change
+  appears after the save-triggered revalidation completes.

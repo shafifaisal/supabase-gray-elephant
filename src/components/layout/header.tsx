@@ -10,12 +10,15 @@ import { primaryNav, Wordmark } from "@/components/layout/nav-links";
  * Responsive header. Desktop shows inline navigation; mobile uses a
  * disclosure button that manages its own expanded state and closes on
  * route change or Escape.
+ *
+ * `brandName` comes from the admin-editable site settings (via the root
+ * layout), so a rebrand updates the wordmark without a code change.
  */
-export function Header() {
+export function Header({ brandName }: { brandName?: string }) {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
       <div className="container-page flex h-16 items-center justify-between gap-4">
-        <Wordmark />
+        <Wordmark brandName={brandName} />
 
         {/*
           Both nav variants read `usePathname()` for active-link state. Under

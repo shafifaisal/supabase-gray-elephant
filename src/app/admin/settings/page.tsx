@@ -16,19 +16,19 @@ const PRESETS: { key: string; label: string; hint: string; value: string }[] = [
   {
     key: "brand_name",
     label: "Brand name",
-    hint: "Displayed in the header and page titles.",
+    hint: "Displayed in the header and footer, and used for the page-title suffix.",
     value: "iPassGenerator",
   },
   {
     key: "site_tagline",
     label: "Tagline",
-    hint: "Short descriptor used in metadata.",
+    hint: "Short descriptor used in the default page title and structured data.",
     value: "Privacy-first password security tools",
   },
   {
     key: "contact_email",
     label: "Contact email",
-    hint: "Shown on the contact page.",
+    hint: "Shown on the contact page and in the legal pages.",
     value: "hello@ipassgenerator.online",
   },
   {
@@ -54,13 +54,14 @@ const PRESETS: { key: string; label: string; hint: string; value: string }[] = [
   {
     key: "maintenance_mode",
     label: "Maintenance mode",
-    hint: "JSON boolean. Shows a holding page to visitors.",
+    hint: 'JSON boolean. Shows a 503 holding page to visitors. /admin and /login stay reachable so you can turn it back off.',
     value: "false",
   },
   {
     key: "site_description",
     label: "Site description",
-    hint: "Default meta description used across public pages.",
+    hint:
+      "Default meta description for pages that do not set their own (the homepage and articles use their own).",
     value: "Generate strong passwords, passphrases and random strings in your browser. Nothing is uploaded, stored or logged.",
   },
   {

@@ -66,6 +66,23 @@ describe("siteGraph", () => {
     const types = graph["@graph"].map((n) => n["@type"]);
     expect(types).toEqual(["Organization", "WebSite"]);
   });
+
+  it("uses the admin-editable identity when one is supplied", () => {
+    const graph = siteGraph({
+      name: "Acme",
+      description: "Acme tools",
+      contactEmail: "hi@acme.test",
+    });
+
+    const [organization, website] = graph["@graph"];
+    expect(organization.name).toBe("Acme");
+    expect(organization.description).toBe("Acme tools");
+    expect(organization.email).toBe("hi@acme.test");
+    expect(website.name).toBe("Acme");
+    // The shared @id must not change with the display name, or articles would
+    // stop resolving to the same publisher entity.
+    expect(organization["@id"]).toBe(`${siteConfig.url}/#organization`);
+  });
 });
 
 describe("breadcrumbNode", () => {

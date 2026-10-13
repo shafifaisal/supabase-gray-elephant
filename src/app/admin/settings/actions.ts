@@ -66,6 +66,11 @@ export async function saveSettingAction(
 
   revalidatePath("/admin/settings");
 
+  // Settings are global: the footer, header wordmark, page titles/meta and the
+  // legal pages are statically prerendered from the root layout/page data. Save
+  // must invalidate them, or the change only appears after a redeploy.
+  revalidatePath("/", "layout");
+
   return { success: true };
 }
 
@@ -114,6 +119,8 @@ export async function deleteSettingAction(formData: FormData): Promise<void> {
   });
 
   revalidatePath("/admin/settings");
+  // Deleting a setting reverts it to the static config everywhere on the site.
+  revalidatePath("/", "layout");
 }
 
 export type SettingsAction = typeof saveSettingAction;

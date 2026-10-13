@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { LegalPage, LegalSection } from "@/components/layout/legal-page";
-import { getContactEmail, getLegalHtml } from "@/lib/settings/public";
-import { siteConfig } from "@/lib/site";
+import {
+  getBrandName,
+  getContactEmail,
+  getLegalHtml,
+} from "@/lib/settings/public";
 
 export const metadata: Metadata = {
   title: "Cookie Policy",
@@ -15,15 +18,16 @@ export const metadata: Metadata = {
 const UPDATED = "2026-10-13";
 
 export default async function CookiePolicyPage() {
-  const [cmsHtml, contactEmail] = await Promise.all([
+  const [cmsHtml, contactEmail, brandName] = await Promise.all([
     getLegalHtml("legal_cookie_policy_html"),
     getContactEmail(),
+    getBrandName(),
   ]);
 
   return (
     <LegalPage title="Cookie Policy" updated={UPDATED} cmsHtml={cmsHtml}>
       <p>
-        This page lists every cookie {siteConfig.name} sets and why. We keep it
+        This page lists every cookie {brandName} sets and why. We keep it
         deliberately short because we use as few cookies as possible.
       </p>
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { ContactForm } from "@/components/contact-form";
+import { getContactEmail } from "@/lib/settings/public";
 import { siteConfig } from "@/lib/site";
 
 import { contactAction } from "./actions";
@@ -12,7 +13,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/contact" },
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const contactEmail = await getContactEmail();
+
   return (
     <div className="container-page py-10">
       <div className="max-w-2xl">
@@ -27,6 +30,17 @@ export default function ContactPage() {
         <div className="mt-8 rounded-[var(--radius-card)] border border-border bg-background p-6">
           <ContactForm action={contactAction} />
         </div>
+
+        <p className="mt-4 text-sm text-muted-foreground">
+          Prefer email? Write to{" "}
+          <a
+            href={`mailto:${contactEmail}`}
+            className="font-medium text-foreground underline underline-offset-2"
+          >
+            {contactEmail}
+          </a>
+          .
+        </p>
 
         <div className="mt-8 rounded-[var(--radius-card)] border border-border bg-secondary/40 p-5">
           <h2 className="text-sm font-semibold">Reporting a security issue</h2>

@@ -22,6 +22,7 @@ import {
   getLegalHtml,
   getPublicSettings,
   getSiteDescription,
+  getSiteIdentity,
   getTagline,
   isFeatureEnabled,
 } from "@/lib/settings/public";
@@ -140,6 +141,46 @@ describe("effective value helpers", () => {
   it("returns the documented footer default when unset", async () => {
     mockSelect({ data: [], error: null });
     expect(await getFooterText()).toBe("Generated secrets never leave your device.");
+  });
+});
+
+describe("getSiteIdentity", () => {
+  beforeEach(() => {
+    fromMock.mockReset();
+  });
+
+  it("layers every database override over the static config", async () => {
+    mockSelect({
+      data: [
+        { key: SETTING_KEYS.brandName, value: "Acme", is_secret: false },
+        { key: SETTING_KEYS.tagline, value: "Security, simply", is_secret: false },
+        { key: SETTING_KEYS.description, value: "A description", is_secret: false },
+        {
+          key: SETTING_KEYS.contactEmail,
+          value: "hi@acme.test",
+          is_secret: false,
+        },
+      ],
+      error: null,
+    });
+
+    expect(await getSiteIdentity()).toEqual({
+      name: "Acme",
+      tagline: "Security, simply",
+      description: "A description",
+      contactEmail: "hi@acme.test",
+    });
+  });
+
+  it("falls back to the static config for every field", async () => {
+    mockSelect({ data: [], error: null });
+
+    expect(await getSiteIdentity()).toEqual({
+      name: siteConfig.name,
+      tagline: siteConfig.tagline,
+      description: siteConfig.description,
+      contactEmail: siteConfig.contactEmail,
+    });
   });
 });
 

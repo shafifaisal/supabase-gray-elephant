@@ -1,7 +1,11 @@
 import "server-only";
 
+import { cache } from "react";
+
 import { createBuildClient } from "@/lib/supabase/build";
 import { siteConfig } from "@/lib/site";
+
+import { asBoolean } from "./parse";
 
 /**
  * Public, non-secret site settings.
@@ -56,30 +60,37 @@ export interface PublicSettings {
  *
  * Returns an empty object (never throws) when the database is unavailable, so
  * callers always fall back to static config rather than crashing a page.
+ *
+ * Wrapped in React's `cache` so that a single request — a layout plus its page
+ * plus every metadata function — reads the table once rather than once per
+ * helper. The memo is per request, so it never serves a stale value across
+ * requests and is unaffected by `revalidatePath`.
  */
-export async function getPublicSettings(): Promise<PublicSettings> {
-  try {
-    const supabase = createBuildClient();
+export const getPublicSettings = cache(
+  async (): Promise<PublicSettings> => {
+    try {
+      const supabase = createBuildClient();
 
-    const { data, error } = await supabase
-      .from("site_settings")
-      .select("key, value, is_secret");
+      const { data, error } = await supabase
+        .from("site_settings")
+        .select("key, value, is_secret");
 
-    if (error) return { raw: {} };
+      if (error) return { raw: {} };
 
-    // Defence in depth: RLS already excludes secrets, but never expose a row
-    // flagged secret even if a future policy change were to return one.
-    const raw: Record<string, unknown> = {};
-    for (const row of data ?? []) {
-      if (row.is_secret) continue;
-      raw[row.key] = row.value;
+      // Defence in depth: RLS already excludes secrets, but never expose a row
+      // flagged secret even if a future policy change were to return one.
+      const raw: Record<string, unknown> = {};
+      for (const row of data ?? []) {
+        if (row.is_secret) continue;
+        raw[row.key] = row.value;
+      }
+
+      return { raw };
+    } catch {
+      return { raw: {} };
     }
-
-    return { raw };
-  } catch {
-    return { raw: {} };
-  }
-}
+  },
+);
 
 /** Reads one setting value, or `undefined` when unset/unavailable. */
 function read(settings: PublicSettings, key: SettingKey): unknown {
@@ -96,19 +107,10 @@ function asString(value: unknown): string | undefined {
 /**
  * Interprets a stored value as a boolean.
  *
- * Settings are stored as JSONB, so a boolean toggle is usually a real boolean,
- * but a value typed into the admin text box may arrive as the string "true".
- * Anything that is not an explicit truthy token is treated as false — a
- * mis-typed value must fail closed (feature stays OFF).
+ * Re-exported from `./parse` so the Edge proxy (maintenance mode) and this
+ * module share one implementation.
  */
-export function asBoolean(value: unknown): boolean {
-  if (typeof value === "boolean") return value;
-  if (typeof value === "string") {
-    return value.trim().toLowerCase() === "true";
-  }
-  if (typeof value === "number") return value === 1;
-  return false;
-}
+export { asBoolean } from "./parse";
 
 
 /**
@@ -147,6 +149,34 @@ export async function getFooterText(): Promise<string> {
   const settings = await getPublicSettings();
   const fallback = "Generated secrets never leave your device.";
   return asString(read(settings, SETTING_KEYS.footerText)) ?? fallback;
+}
+
+/**
+ * The site's public identity in one read.
+ *
+ * The root layout needs the brand name (header, `<title>` template), the
+ * tagline and description (metadata) and the contact email (structured data) at
+ * once. Reading them through this helper keeps every surface consistent and,
+ * because `getPublicSettings` is request-memised, costs one query.
+ */
+export interface SiteIdentity {
+  name: string;
+  tagline: string;
+  description: string;
+  contactEmail: string;
+}
+
+export async function getSiteIdentity(): Promise<SiteIdentity> {
+  const settings = await getPublicSettings();
+  return {
+    name: asString(read(settings, SETTING_KEYS.brandName)) ?? siteConfig.name,
+    tagline: asString(read(settings, SETTING_KEYS.tagline)) ?? siteConfig.tagline,
+    description:
+      asString(read(settings, SETTING_KEYS.description)) ?? siteConfig.description,
+    contactEmail:
+      asString(read(settings, SETTING_KEYS.contactEmail)) ??
+      siteConfig.contactEmail,
+  };
 }
 
 /**

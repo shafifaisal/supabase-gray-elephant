@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { logoAlt } from "@/lib/seo/alt-text";
-import { getBrandName, getFooterText } from "@/lib/settings/public";
+import { getBrandName, getFooterText, getTagline } from "@/lib/settings/public";
 
 /**
  * Resolved once per render so prerendering stays deterministic.
@@ -14,10 +14,15 @@ function getCurrentYear(): number {
 
 export async function Footer() {
   const year = getCurrentYear();
-  const [brandName, footerText] = await Promise.all([
+  const [brandName, footerText, tagline] = await Promise.all([
     getBrandName(),
     getFooterText(),
+    getTagline(),
   ]);
+
+  // The tagline is the opening sentence of the footer blurb; the stored value
+  // may or may not already end with a full stop, so normalise it.
+  const taglineSentence = tagline.trim().replace(/[.!?]+$/, "");
 
   const sections = [
     {
@@ -65,8 +70,8 @@ export async function Footer() {
               <span>{brandName}</span>
             </div>
             <p className="mt-3 max-w-xs text-sm text-muted-foreground">
-              Privacy-first password security tools. Everything runs in your
-              browser — nothing is uploaded, stored or logged.
+              {taglineSentence}. Everything runs in your browser — nothing is
+              uploaded, stored or logged.
             </p>
           </div>
 

@@ -5,14 +5,16 @@ import { ArticleCard } from "@/components/articles/article-card";
 import { Card, SectionHeading } from "@/components/ui/primitives";
 import { getPublishedArticles } from "@/lib/content/articles";
 import { getPublicMediaMap } from "@/lib/media/urls";
-import { siteConfig } from "@/lib/site";
+import { getSiteDescription } from "@/lib/settings/public";
 import { toolPath, tools } from "@/lib/tools";
 
-export const metadata: Metadata = {
-  title: { absolute: "Instant Password Generator - Free Tool Secure & Reliable" },
-  description: siteConfig.description,
-  alternates: { canonical: "/" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: { absolute: "Instant Password Generator - Free Tool Secure & Reliable" },
+    description: await getSiteDescription(),
+    alternates: { canonical: "/" },
+  };
+}
 
 export default async function HomePage() {
   const latestArticles = await getPublishedArticles(3);

@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/articles/article-card";
 import { getArticlesByCategory } from "@/lib/content/articles";
 import { getPublicMediaMap } from "@/lib/media/urls";
-import { siteConfig } from "@/lib/site";
+import { getBrandName } from "@/lib/settings/public";
 
 /**
  * Per-category metadata. `generateMetadata` is used instead of a static
@@ -17,7 +17,10 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const { category } = await getArticlesByCategory(slug);
+  const [{ category }, brandName] = await Promise.all([
+    getArticlesByCategory(slug),
+    getBrandName(),
+  ]);
 
   if (!category) {
     return { title: "Category not found", robots: { index: false, follow: false } };
@@ -27,7 +30,7 @@ export async function generateMetadata({
     title: category.name,
     description:
       category.description ||
-      `All ${siteConfig.name} articles filed under ${category.name}.`,
+      `All ${brandName} articles filed under ${category.name}.`,
     alternates: { canonical: `/articles/category/${category.slug}` },
   };
 }
