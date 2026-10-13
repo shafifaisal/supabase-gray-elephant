@@ -25,7 +25,7 @@ export default async function HomePage() {
       <section className="relative isolate w-full overflow-hidden border-b border-border bg-[#04070f] text-white">
         <div
           aria-hidden="true"
-          className="absolute inset-0 -z-20 bg-[url('/hero-banner.jpg')] bg-cover bg-center bg-no-repeat"
+          className="absolute inset-0 -z-20 bg-[url(/hero-banner.jpg)] bg-cover bg-center bg-no-repeat"
         />
         <div className="container-page py-16 sm:py-24">
           <div className="max-w-3xl">
