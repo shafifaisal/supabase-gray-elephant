@@ -92,7 +92,7 @@ export default async function HomePage() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <SectionHeading
               title="Latest articles"
-              description="Practical guidance on password strength, passphrases, password managers and account recovery."
+              description="Practical guidance on password strength, passphrases, and password managers."
             />
             <Link
               href="/articles"
