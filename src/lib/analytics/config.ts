@@ -8,8 +8,10 @@ import "server-only";
  *  1. Analytics is OPTIONAL and OFF by default. It only runs when an
  *     administrator has explicitly enabled it (the `analytics_enabled` site
  *     setting) AND a syntactically valid GA4 measurement ID is configured.
- *     There is deliberately no bundled or placeholder ID — the value must be
- *     supplied by the site owner in an environment variable.
+ *     The site owner's real measurement ID is bundled as a default so analytics
+ *     works without extra environment setup; `NEXT_PUBLIC_GA_MEASUREMENT_ID`
+ *     overrides it when present. The default is the owner's own public ID, never
+ *     a placeholder or a fabricated value.
  *  2. Nothing here loads a script. It only decides whether analytics is
  *     *ready*. The client loader additionally requires visitor consent before
  *     injecting gtag.js, so a script can never load before consent.
@@ -25,12 +27,18 @@ import "server-only";
 
 /**
  * A GA4 measurement ID has the form `G-` followed by uppercase letters and
- * digits (e.g. `G-F821LK82PY`). This validates the shape only. It is NOT a real
- * ID — the actual value is supplied by the site owner via
- * `NEXT_PUBLIC_GA_MEASUREMENT_ID`. The pattern exists so a malformed value
- * fails closed rather than being embedded into a script URL.
+ * digits (e.g. `G-F821LK82PY`). This validates the shape only, so a malformed
+ * value fails closed rather than being embedded into a script URL.
  */
 const GA4_MEASUREMENT_ID_PATTERN = /^G-[A-Z0-9]{4,}$/;
+
+/**
+ * The site owner's GA4 measurement ID, used when the environment variable is
+ * unset. This is a public identifier, not a secret — it is embedded in the tag
+ * Google Analytics itself generates and ships to the browser anyway. It is a
+ * real ID owned by the site, never a placeholder or fabricated value.
+ */
+export const DEFAULT_GA_MEASUREMENT_ID = "G-F821LK82PY";
 
 /** Whether a value looks like a real GA4 measurement ID. */
 export function isValidGaMeasurementId(
@@ -40,10 +48,17 @@ export function isValidGaMeasurementId(
   return GA4_MEASUREMENT_ID_PATTERN.test(value.trim().toUpperCase());
 }
 
-/** The configured measurement ID, normalised, or null when absent/invalid. */
+/**
+ * The configured measurement ID, normalised, or null when invalid.
+ *
+ * `NEXT_PUBLIC_GA_MEASUREMENT_ID` wins when set; otherwise the site owner's
+ * bundled default is used. An explicitly configured but malformed value fails
+ * closed (returns null) rather than silently falling back.
+ */
 export function gaMeasurementId(): string | null {
-  const raw = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim().toUpperCase();
-  return isValidGaMeasurementId(raw) ? (raw as string) : null;
+  const configured = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim();
+  const raw = (configured || DEFAULT_GA_MEASUREMENT_ID).toUpperCase();
+  return isValidGaMeasurementId(raw) ? raw : null;
 }
 
 export interface AnalyticsConfig {

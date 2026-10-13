@@ -48,7 +48,7 @@ const PRESETS: { key: string; label: string; hint: string; value: string }[] = [
     key: "analytics_enabled",
     label: "Enable analytics",
     hint:
-      'JSON boolean. Google Analytics 4 loads only when this is true AND a valid NEXT_PUBLIC_GA_MEASUREMENT_ID is set AND the visitor consents. Leave "false" to keep analytics off.',
+      'JSON boolean. Google Analytics 4 loads only when this is true AND the visitor consents. A valid measurement ID is bundled in code (override with NEXT_PUBLIC_GA_MEASUREMENT_ID). Leave "false" to keep analytics off.',
     value: "false",
   },
   {

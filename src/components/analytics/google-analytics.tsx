@@ -11,8 +11,9 @@ import { useHasOptionalConsent } from "@/lib/ads/use-consent";
  * -------------------------------
  * gtag.js is injected ONLY when BOTH are true:
  *   1. the server reports analytics is enabled — the admin `analytics_enabled`
- *      setting is on AND a valid `NEXT_PUBLIC_GA_MEASUREMENT_ID` is configured
- *      (fetched from /api/analytics/config);
+ *      setting is on AND a valid GA4 measurement ID resolves (the owner's
+ *      bundled default, or `NEXT_PUBLIC_GA_MEASUREMENT_ID` when set) — fetched
+ *      from /api/analytics/config;
  *   2. the visitor has granted optional ("accept all") consent, read from the
  *      first-party consent cookie via useHasOptionalConsent.
  *

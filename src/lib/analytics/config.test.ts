@@ -12,9 +12,11 @@ import {
 
 /**
  * These tests pin the fail-closed contract of the analytics configuration:
- * analytics must be OFF unless every precondition is satisfied, and no
- * measurement ID is ever fabricated. A regression here could ship analytics
- * without readiness — or with a malformed ID embedded in a script URL.
+ * analytics must be OFF unless every precondition is satisfied, an invalid
+ * configured ID never ships, and the only ID ever used is the owner's own
+ * (env var or bundled default) — never a fabricated value. A regression here
+ * could ship analytics without readiness — or with a malformed ID embedded in a
+ * script URL.
  */
 
 const ORIGINAL_ENV = { ...process.env };
@@ -50,17 +52,20 @@ describe("isValidGaMeasurementId — shape only, never a real ID", () => {
   });
 });
 
-describe("gaMeasurementId — from env, normalised", () => {
-  it("returns null when unset or invalid (never a placeholder)", () => {
+describe("gaMeasurementId — env overrides the bundled default", () => {
+  it("falls back to the owner's bundled ID when the env var is unset", () => {
     setGaEnv();
-    expect(gaMeasurementId()).toBeNull();
+    expect(gaMeasurementId()).toBe("G-F821LK82PY");
+  });
+
+  it("fails closed when the env var is present but malformed", () => {
     setGaEnv("not-a-ga-id");
     expect(gaMeasurementId()).toBeNull();
   });
 
-  it("returns the uppercase ID when valid", () => {
-    setGaEnv("g-f821lk82py");
-    expect(gaMeasurementId()).toBe("G-F821LK82PY");
+  it("returns the uppercase env ID when valid (env wins)", () => {
+    setGaEnv("g-abc123xyz");
+    expect(gaMeasurementId()).toBe("G-ABC123XYZ");
   });
 });
 
@@ -72,11 +77,18 @@ describe("resolveAnalyticsConfig — fail closed", () => {
     expect(config.measurementId).toBeNull();
   });
 
-  it("is disabled when no valid measurement ID is present", () => {
-    setGaEnv();
+  it("is disabled when the configured ID is malformed", () => {
+    setGaEnv("not-a-ga-id");
     const config = resolveAnalyticsConfig(true);
     expect(config.enabled).toBe(false);
     expect(config.measurementId).toBeNull();
+  });
+
+  it("is enabled when admin-enabled even without the env var (bundled default)", () => {
+    setGaEnv();
+    const config = resolveAnalyticsConfig(true);
+    expect(config.enabled).toBe(true);
+    expect(config.measurementId).toBe("G-F821LK82PY");
   });
 
   it("is enabled only when admin-enabled AND a valid ID is set", () => {

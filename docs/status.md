@@ -678,3 +678,36 @@ against the database) but the public site never changed.
   live data.
 - Metadata is regenerated at build/revalidation time, so a title/meta change
   appears after the save-triggered revalidation completes.
+
+## GA measurement ID bundled as a default (2026-10-13)
+
+**Request.** The owner supplied the standard gtag.js snippet for
+`G-F821LK82PY` and asked that it replace the current analytics code. The chosen
+approach (confirmed with the owner) keeps the consent gate and embeds the ID, so
+GA fires without needing a Vercel environment variable.
+
+**Change** (`src/lib/analytics/config.ts`)
+- Added `DEFAULT_GA_MEASUREMENT_ID = "G-F821LK82PY"` — the owner's own public
+  GA4 ID, not a placeholder. `gaMeasurementId()` now uses
+  `NEXT_PUBLIC_GA_MEASUREMENT_ID` when set, otherwise the bundled default; an
+  explicitly configured but malformed value still fails closed (returns null).
+- The consent gate is unchanged: gtag.js is still injected only after the
+  visitor grants optional consent, so AGENTS.md §4 holds.
+
+**Files changed**
+`src/lib/analytics/config.ts`, `src/lib/analytics/config.test.ts`,
+`src/components/analytics/google-analytics.tsx` (doc comment),
+`src/app/admin/settings/page.tsx` (hint), `.env.example` (comment).
+
+**Verification (all executed)**
+| Gate | Result |
+|---|---|
+| `npm run lint` | pass, 0 errors/warnings |
+| `npm run typecheck` | pass |
+| `npm test` | **297/297** (was 295; +2: bundled-default fallback, malformed-config fail-closed) |
+| runtime | `GET /api/analytics/config` → `{"enabled":true,"measurementId":"G-F821LK82PY","consentRequired":true}` |
+
+**Note.** The fallback path (no env var) is covered by unit tests; the local dev
+server reads `.env.local`, which already sets the same value, so the runtime
+check exercises the env path. Set the env var in Vercel only if you ever need to
+override the bundled default.
