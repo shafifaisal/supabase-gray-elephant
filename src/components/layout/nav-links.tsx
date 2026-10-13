@@ -59,7 +59,7 @@ export function Wordmark({ brandName }: { brandName?: string }) {
         className="h-8 w-8 object-contain"
         aria-hidden="true"
       />
-      <span>{brandName ?? siteConfig.name}</span>
+      <span className="text-xl">{brandName ?? siteConfig.name}</span>
     </Link>
   );
 }

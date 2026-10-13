@@ -67,7 +67,7 @@ export async function Footer() {
                 className="h-8 w-8 object-contain"
                 aria-hidden="true"
               />
-              <span>{brandName}</span>
+              <span className="text-xl">{brandName}</span>
             </div>
             <p className="mt-3 max-w-xs text-sm text-muted-foreground">
               {taglineSentence}. Everything runs in your browser — nothing is
