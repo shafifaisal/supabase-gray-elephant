@@ -147,7 +147,7 @@ export async function getContactEmail(): Promise<string> {
 /** Effective footer small print, override first. */
 export async function getFooterText(): Promise<string> {
   const settings = await getPublicSettings();
-  const fallback = "Generated secrets never leave your device.";
+  const fallback = "";
   return asString(read(settings, SETTING_KEYS.footerText)) ?? fallback;
 }
 

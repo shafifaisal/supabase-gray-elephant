@@ -140,7 +140,7 @@ describe("effective value helpers", () => {
 
   it("returns the documented footer default when unset", async () => {
     mockSelect({ data: [], error: null });
-    expect(await getFooterText()).toBe("Generated secrets never leave your device.");
+    expect(await getFooterText()).toBe("");
   });
 });
 

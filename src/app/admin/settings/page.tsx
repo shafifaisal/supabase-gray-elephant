@@ -35,7 +35,7 @@ const PRESETS: { key: string; label: string; hint: string; value: string }[] = [
     key: "footer_text",
     label: "Footer text",
     hint: "Small print shown in the footer.",
-    value: "Generated secrets never leave your device.",
+    value: "",
   },
   {
     key: "adsense_enabled",
