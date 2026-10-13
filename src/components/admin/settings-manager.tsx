@@ -8,117 +8,180 @@ import type { ActionState } from "@/lib/validation/article";
 const inputClasses =
   "w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm transition-colors focus:border-primary focus:outline-none";
 
+type SettingsAction = (
+  state: ActionState,
+  formData: FormData,
+) => Promise<ActionState>;
+
+interface Preset {
+  key: string;
+  label: string;
+  hint: string;
+  value: string;
+}
+
+interface StoredSetting {
+  key: string;
+  value: string | null;
+  is_secret: boolean;
+}
+
+/**
+ * Settings editor.
+ *
+ * WHY ONE FORM PER SETTING
+ * ------------------------
+ * The save action reads a single `key` and a single `value` from the submitted
+ * FormData. A form containing several fields of the same name collapses them to
+ * the first match, so wrapping every setting in one form meant only the first
+ * field could ever be saved — every other setting silently reverted. Giving each
+ * setting its own <form> keeps exactly one `key`/`value` per submit, so each
+ * field saves independently and reports its own result.
+ */
 export function SettingsManager({
   action,
   presets,
   existing,
 }: {
-  action: (state: ActionState, formData: FormData) => Promise<ActionState>;
-  presets: { key: string; label: string; hint: string; value: string }[];
-  existing: { key: string; value: string | null; is_secret: boolean }[];
+  action: SettingsAction;
+  presets: Preset[];
+  existing: StoredSetting[];
 }) {
-  const [state, formAction] = useActionState(action, {});
   const current = new Map(existing.map((s) => [s.key, s]));
 
   return (
-    <form action={formAction} className="mt-6 space-y-6">
-      {state.success ? (
-        <p
-          role="status"
-          className="rounded-md border border-success/40 bg-success/10 px-4 py-3 text-sm text-success"
-        >
-          Setting saved.
-        </p>
-      ) : null}
-
-      {state.error ? (
-        <p
-          role="alert"
-          className="rounded-md border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger"
-        >
-          {state.error}
-        </p>
-      ) : null}
-
+    <div className="mt-6 space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
         {presets.map((preset) => {
           const stored = current.get(preset.key);
 
           return (
-            <div
+            <SettingForm
               key={preset.key}
-              className="rounded-[var(--radius-card)] border border-border bg-background p-6"
-            >
-              <label
-                htmlFor={`setting-${preset.key}`}
-                className="block text-sm font-semibold"
-              >
-                {preset.label}
-              </label>
-              <p className="mt-0.5 text-xs text-muted-foreground">{preset.hint}</p>
-
-              <input
-                type="hidden"
-                name="key"
-                value={preset.key}
-              />
-
-              <input
-                id={`setting-${preset.key}`}
-                name="value"
-                defaultValue={stored?.value ?? preset.value}
-                className={`${inputClasses} mt-2 font-mono`}
-              />
-
-              <p className="mt-1 text-xs text-muted-foreground">
-                Key: <span className="font-mono">{preset.key}</span>
-                {stored ? " · currently saved" : " · using default"}
-              </p>
-            </div>
+              action={action}
+              settingKey={preset.key}
+              label={preset.label}
+              hint={preset.hint}
+              defaultValue={stored?.value ?? preset.value}
+              isStored={stored !== undefined}
+            />
           );
         })}
       </div>
 
-      <div>
-        <label htmlFor="custom-key" className="mb-1.5 block text-sm font-medium">
-          Custom key
-        </label>
+      <SettingForm
+        action={action}
+        settingKey=""
+        label="Custom setting"
+        hint='Save an arbitrary key. The key must use lowercase letters, numbers and underscores. Values are parsed as JSON when possible, so a value of true or {"enabled": true} is stored as such.'
+        defaultValue=""
+        isStored={false}
+        allowSecret
+        placeholderKey="lowercase_with_underscores"
+        placeholderValue='{"enabled": true}'
+      />
+    </div>
+  );
+}
+
+function SettingForm({
+  action,
+  settingKey,
+  label,
+  hint,
+  defaultValue,
+  isStored,
+  allowSecret = false,
+  placeholderKey,
+  placeholderValue,
+}: {
+  action: SettingsAction;
+  /** "" renders an editable key field (used only by the custom-setting form). */
+  settingKey: string;
+  label: string;
+  hint: string;
+  defaultValue: string;
+  isStored: boolean;
+  allowSecret?: boolean;
+  placeholderKey?: string;
+  placeholderValue?: string;
+}) {
+  const [state, formAction] = useActionState(action, {});
+  const valueId = `setting-${settingKey || "custom"}-value`;
+
+  return (
+    <form
+      action={formAction}
+      className="flex flex-col rounded-[var(--radius-card)] border border-border bg-background p-6"
+    >
+      <label htmlFor={valueId} className="block text-sm font-semibold">
+        {label}
+      </label>
+      <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>
+
+      {settingKey ? (
+        // Exactly one `key` per form, so the action can never read the wrong one.
+        <input type="hidden" name="key" value={settingKey} />
+      ) : (
         <input
-          id="custom-key"
+          id="setting-custom-key"
           name="key"
           defaultValue=""
-          placeholder="lowercase_with_underscores"
-          className={`${inputClasses} font-mono`}
+          placeholder={placeholderKey}
+          aria-label="Setting key"
+          className={`${inputClasses} mt-2 font-mono`}
         />
-        <p className="mt-1 text-xs text-muted-foreground">
-          Leave the key above blank to save only the custom key. Values are
-          parsed as JSON when possible.
-        </p>
-      </div>
+      )}
 
-      <div>
-        <label
-          htmlFor="custom-value"
-          className="mb-1.5 block text-sm font-medium"
-        >
-          Custom value
+      <input
+        id={valueId}
+        name="value"
+        defaultValue={defaultValue}
+        placeholder={placeholderValue}
+        className={`${inputClasses} mt-2 font-mono`}
+      />
+
+      {allowSecret ? (
+        <label className="mt-2 flex cursor-pointer items-center gap-2.5 text-sm">
+          <input
+            type="checkbox"
+            name="is_secret"
+            className="h-4 w-4 accent-primary"
+          />
+          Mark as secret (readable by administrators only)
         </label>
-        <textarea
-          id="custom-value"
-          name="value"
-          rows={3}
-          defaultValue=""
-          placeholder='{"enabled": true}'
-          className={`${inputClasses} font-mono`}
-        />
+      ) : null}
+
+      <p className="mt-1 text-xs text-muted-foreground">
+        Key: <span className="font-mono">{settingKey || "(custom)"}</span>
+        {settingKey
+          ? isStored
+            ? " · currently saved"
+            : " · using default"
+          : null}
+      </p>
+
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <ActionButton>Save</ActionButton>
+
+        {state.success ? (
+          <span role="status" className="text-xs font-medium text-success">
+            Saved.
+          </span>
+        ) : null}
       </div>
 
-      <label className="flex cursor-pointer items-center gap-2.5 text-sm">
-        <input type="checkbox" name="is_secret" className="h-4 w-4 accent-primary" />
-        Mark as secret (readable by administrators only)
-      </label>
+      {state.error ? (
+        <p role="alert" className="mt-2 text-xs text-danger">
+          {state.error}
+        </p>
+      ) : null}
 
-      <ActionButton>Save settings</ActionButton>
+      {state.fieldErrors ? (
+        <p role="alert" className="mt-2 text-xs text-danger">
+          {Object.values(state.fieldErrors).join(" ")}
+        </p>
+      ) : null}
     </form>
   );
 }
