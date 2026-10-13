@@ -70,8 +70,7 @@ export async function Footer() {
               <span className="text-xl">{brandName}</span>
             </div>
             <p className="mt-3 max-w-xs text-sm text-muted-foreground">
-              {taglineSentence}. Everything runs in your browser — nothing is
-              uploaded, stored or logged.
+              {taglineSentence}. Everything runs in your browser.
             </p>
           </div>
 
@@ -99,11 +98,11 @@ export async function Footer() {
           ))}
         </div>
 
-        <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>
+        <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-col sm:items-center sm:justify-center">
+          <p className="text-center">
             &copy; {year} {brandName}. All rights reserved.
           </p>
-          <p>{footerText}</p>
+          <p className="text-center">{footerText}</p>
         </div>
       </div>
     </footer>
