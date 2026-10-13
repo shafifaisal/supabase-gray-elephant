@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { logoAlt } from "@/lib/seo/alt-text";
-import { getBrandName, getFooterText, getTagline } from "@/lib/settings/public";
+import { getBrandName, getTagline } from "@/lib/settings/public";
 
 /**
  * Resolved once per render so prerendering stays deterministic.
@@ -14,9 +14,8 @@ function getCurrentYear(): number {
 
 export async function Footer() {
   const year = getCurrentYear();
-  const [brandName, footerText, tagline] = await Promise.all([
+  const [brandName, tagline] = await Promise.all([
     getBrandName(),
-    getFooterText(),
     getTagline(),
   ]);
 
@@ -98,11 +97,10 @@ export async function Footer() {
           ))}
         </div>
 
-        <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-col sm:items-center sm:justify-center">
-          <p className="text-center">
+        <div className="mt-10 border-t border-border pt-6 text-center text-sm text-muted-foreground">
+          <p>
             &copy; {year} {brandName}. All rights reserved.
           </p>
-          <p className="text-center">{footerText}</p>
         </div>
       </div>
     </footer>
