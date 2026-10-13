@@ -43,15 +43,20 @@ export function Header({ brandName }: { brandName?: string }) {
 }
 
 /**
- * Resolves whether a staff session is active, for the conditional Logout link.
+ * Resolves whether a staff session is active, for the conditional Admin menu.
  *
  * This is a client-side probe (see /api/auth/status) rather than a server read
  * in the root layout on purpose: reading the session cookie during render would
  * opt every public page out of static caching. It starts `false`, so the
  * prerendered HTML is identical for everyone and only a signed-in admin's
- * browser adds the Logout control after hydration.
+ * browser reveals the menu after hydration.
+ *
+ * It re-probes on every navigation. The root layout — and therefore this header
+ * — stays mounted across route changes, so a sign-in redirect would otherwise
+ * not be reflected until a manual refresh.
  */
 function useIsAuthenticated(): boolean {
+  const pathname = usePathname();
   const [authenticated, setAuthenticated] = useState(false);
 
   useEffect(() => {
@@ -63,11 +68,11 @@ function useIsAuthenticated(): boolean {
         if (data) setAuthenticated(Boolean(data.authenticated));
       })
       .catch(() => {
-        // Offline or aborted — simply leave the Logout link hidden.
+        // Offline or aborted — leave the menu as it is.
       });
 
     return () => controller.abort();
-  }, []);
+  }, [pathname]);
 
   return authenticated;
 }
