@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, useEffect, useId, useRef, useState } from "react";
 
+import { signOutAction } from "@/app/login/actions";
 import { primaryNav, Wordmark } from "@/components/layout/nav-links";
 
 /**
@@ -15,6 +16,8 @@ import { primaryNav, Wordmark } from "@/components/layout/nav-links";
  * layout), so a rebrand updates the wordmark without a code change.
  */
 export function Header({ brandName }: { brandName?: string }) {
+  const authenticated = useIsAuthenticated();
+
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
       <div className="container-page flex h-16 items-center justify-between gap-4">
@@ -28,14 +31,127 @@ export function Header({ brandName }: { brandName?: string }) {
           active state, so navigation is never missing.
         */}
         <Suspense fallback={<StaticNav />}>
-          <ActiveNav />
+          <ActiveNav authenticated={authenticated} />
         </Suspense>
 
         <Suspense fallback={<span className="h-10 w-10 md:hidden" />}>
-          <MobileNav />
+          <MobileNav authenticated={authenticated} />
         </Suspense>
       </div>
     </header>
+  );
+}
+
+/**
+ * Resolves whether a staff session is active, for the conditional Logout link.
+ *
+ * This is a client-side probe (see /api/auth/status) rather than a server read
+ * in the root layout on purpose: reading the session cookie during render would
+ * opt every public page out of static caching. It starts `false`, so the
+ * prerendered HTML is identical for everyone and only a signed-in admin's
+ * browser adds the Logout control after hydration.
+ */
+function useIsAuthenticated(): boolean {
+  const [authenticated, setAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetch("/api/auth/status", { cache: "no-store", signal: controller.signal })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (data) setAuthenticated(Boolean(data.authenticated));
+      })
+      .catch(() => {
+        // Offline or aborted — simply leave the Logout link hidden.
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  return authenticated;
+}
+
+/**
+ * Desktop staff menu. Hovering (or focusing) "Logout" slides a small dropdown
+ * down with a Dashboard link and the actual sign-out action. CSS-only so it
+ * costs no JavaScript and works for pointer and keyboard users alike.
+ */
+function AuthMenu() {
+  return (
+    <div className="group relative">
+      <button
+        type="button"
+        aria-haspopup="true"
+        className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:bg-secondary focus-visible:text-foreground"
+      >
+        Admin
+        <ChevronDownIcon className="h-3.5 w-3.5 transition-transform duration-150 group-hover:rotate-180 group-focus-within:rotate-180" />
+      </button>
+
+      <div className="invisible absolute right-0 top-full z-50 -translate-y-2 pt-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
+        <div className="w-44 rounded-md border border-border bg-background p-1 shadow-lg">
+          <Link
+            href="/admin"
+            className="block rounded px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            Dashboard
+          </Link>
+          <form action={signOutAction}>
+            <button
+              type="submit"
+              className="block w-full rounded px-3 py-2 text-left text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              Logout
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Mobile equivalent: the same two destinations, expanded inline. */
+function MobileAuthItems() {
+  return (
+    <>
+      <li>
+        <Link
+          href="/admin"
+          className="block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        >
+          Dashboard
+        </Link>
+      </li>
+      <li>
+        <form action={signOutAction}>
+          <button
+            type="submit"
+            className="block w-full rounded-md px-3 py-2 text-left text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            Logout
+          </button>
+        </form>
+      </li>
+    </>
+  );
+}
+
+function ChevronDownIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
   );
 }
 
@@ -58,7 +174,7 @@ function StaticNav() {
   );
 }
 
-function ActiveNav() {
+function ActiveNav({ authenticated }: { authenticated: boolean }) {
   const pathname = usePathname();
 
   return (
@@ -71,6 +187,11 @@ function ActiveNav() {
             </NavLink>
           </li>
         ))}
+        {authenticated ? (
+          <li>
+            <AuthMenu />
+          </li>
+        ) : null}
       </ul>
     </nav>
   );
@@ -102,7 +223,7 @@ function NavLink({
   );
 }
 
-function MobileNav() {
+function MobileNav({ authenticated }: { authenticated: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const panelId = useId();
@@ -197,6 +318,7 @@ function MobileNav() {
                 </Link>
               </li>
             ))}
+            {authenticated ? <MobileAuthItems /> : null}
           </ul>
         </nav>
       ) : null}
