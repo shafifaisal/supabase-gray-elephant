@@ -39,6 +39,14 @@ describe("organizationNode", () => {
     expect(node.name).toBe(siteConfig.name);
     expect(node.url).toBe(siteConfig.url);
   });
+
+  it("exposes an absolute logo so the entity can render a logo result", () => {
+    const node = organizationNode();
+    const logo = node.logo as { "@type": string; url: string };
+    expect(logo["@type"]).toBe("ImageObject");
+    expect(logo.url.startsWith("http")).toBe(true);
+    expect(logo.url.endsWith("/logo.png")).toBe(true);
+  });
 });
 
 describe("webSiteNode", () => {
@@ -61,6 +69,11 @@ describe("siteGraph", () => {
 });
 
 describe("breadcrumbNode", () => {
+  it("declares its own @context (it is serialised as a standalone script)", () => {
+    const node = breadcrumbNode([{ name: "Home", path: "/" }]);
+    expect(node["@context"]).toBe("https://schema.org");
+  });
+
   it("numbers positions and omits item on the final step", () => {
     const node = breadcrumbNode([
       { name: "Home", path: "/" },

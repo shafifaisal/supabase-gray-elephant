@@ -48,6 +48,14 @@ export function organizationNode(): JsonLdNode {
     url: siteConfig.url,
     description: siteConfig.description,
     email: siteConfig.contactEmail,
+    // Google recommends a logo for the Organization entity. The dimensions are
+    // the real ones of the shipped asset (public/logo.png, 64x64).
+    logo: {
+      "@type": "ImageObject",
+      url: absoluteUrl("/logo.png"),
+      width: 64,
+      height: 64,
+    },
   };
 }
 
@@ -98,9 +106,15 @@ export interface BreadcrumbStep {
 /**
  * BreadcrumbList node. `item` URLs are absolute; the current (last) step omits
  * `item`, which is the recommended form for the page you are already on.
+ *
+ * The `@context` is required: this node is serialised into its own
+ * `<script type="application/ld+json">` block, separate from the site graph.
+ * Without it, a JSON-LD processor resolves `BreadcrumbList`/`ListItem` against
+ * the document URL instead of schema.org, producing invalid types.
  */
 export function breadcrumbNode(steps: BreadcrumbStep[]): JsonLdNode {
   return {
+    "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: steps.map((step, index) => {
       const isLast = index === steps.length - 1;

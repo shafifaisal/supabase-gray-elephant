@@ -65,8 +65,19 @@ function articleStructuredData(params: {
     datePublished: article.published_at ?? undefined,
     dateModified: article.updated_at,
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    // Authorship is attributed to the publishing Organization (this site) —
+    // never an invented person. Both author and publisher share the
+    // Organization's @id so they resolve to the single entity declared in the
+    // root layout's site graph, which carries the logo.
+    author: {
+      "@type": "Organization",
+      "@id": `${siteConfig.url}/#organization`,
+      name: siteConfig.name,
+      url: siteConfig.url,
+    },
     publisher: {
       "@type": "Organization",
+      "@id": `${siteConfig.url}/#organization`,
       name: siteConfig.name,
       url: siteConfig.url,
     },
@@ -174,8 +185,9 @@ export default async function ArticlePage({
   return (
     <article className="container-page py-10">
       {/* Article structured data. Only fields we can genuinely evidence are
-          included — no invented ratings, reviews or authorship claims.
-          "<" is escaped so the payload cannot terminate the script element. */}
+          included — no invented ratings, reviews or people. Authorship is
+          attributed to the publishing Organization. "<" is escaped so the
+          payload cannot terminate the script element. */}
       <JsonLd
         data={articleStructuredData({ seoTitle, description, url, article, image })}
       />
