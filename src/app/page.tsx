@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const latestArticles = await getPublishedArticles(3);
+  const latestArticles = await getPublishedArticles(6);
   const latestMedia = await getPublicMediaMap(
     latestArticles.map((article) => article.featured_image_id),
   );
@@ -89,11 +89,8 @@ export default async function HomePage() {
 
       {latestArticles.length > 0 ? (
         <section className="container-page border-t border-border py-16">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <SectionHeading
-              title="Latest articles"
-              description="Practical guidance on password strength, passphrases, and password managers."
-            />
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <SectionHeading title="Latest articles" />
             <Link
               href="/articles"
               className="inline-flex h-10 items-center rounded-md border border-border px-4 text-sm font-semibold transition-colors hover:bg-secondary"
