@@ -155,7 +155,7 @@ export default async function HomePage() {
                   </span>
                   <span>
                     <strong className="text-foreground">No storage.</strong>{" "}
-                    Generated secrets are never written to cookies, local storage or
+                    Generated values are never written to cookies, local storage or
                     the URL.
                   </span>
                 </li>
