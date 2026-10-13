@@ -13,8 +13,8 @@ export const metadata: Metadata = {
 
 export default async function ContactPage() {
   return (
-    <div className="container-page flex min-h-full flex-col justify-center py-10">
-      <div className="max-w-2xl">
+    <div className="container-page flex min-h-full flex-col items-center justify-center py-10">
+      <div className="mt-6 w-full max-w-2xl">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
           Contact Us.
         </h1>

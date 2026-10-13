@@ -54,6 +54,12 @@ export function ContactForm({
         </p>
       ) : null}
 
+      <p className="text-sm text-muted-foreground">
+        Your feedback matters to us! If you have any questions or inquiries,
+        feel free to contact our team. We&rsquo;re always happy to help and will
+        get back to you as soon as possible.
+      </p>
+
       <div>
         <label htmlFor="name" className="mb-1.5 block text-sm font-medium">
           Your name
