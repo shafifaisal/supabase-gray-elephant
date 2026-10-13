@@ -249,6 +249,34 @@ try {
     "guides page contains no AdSense script while ads are off",
     !/pagead2\.googlesyndication|adsbygoogle/i.test(guidesHtml),
   );
+
+  // --- Analytics: consent-gated, fails closed without a valid GA4 id --------
+  console.log("\nAnalytics:");
+  const analyticsRes = await fetch(`${site}/api/analytics/config`, {
+    redirect: "manual",
+  });
+  const analyticsJson = await analyticsRes.json();
+  check(
+    "analytics config endpoint returns 200",
+    analyticsRes.status === 200,
+    `got ${analyticsRes.status}`,
+  );
+  check(
+    "analytics config is not cached",
+    analyticsRes.headers.get("cache-control")?.includes("no-store"),
+  );
+  check(
+    "analytics declares consent is still required",
+    analyticsJson.consentRequired === true,
+  );
+  // The measurement id is either null (disabled) or a real-looking GA4 id. It is
+  // NEVER fabricated, and it never appears in served HTML (client-injected only
+  // after consent — asserted by the "no third-party analytics/ads script" check).
+  check(
+    "analytics measurement id is null or a valid GA4 id",
+    analyticsJson.measurementId === null ||
+      /^G-[A-Z0-9]{4,}$/.test(analyticsJson.measurementId),
+  );
 } finally {
   console.log("\nCleaning up fixtures...");
   for (const id of [draftId, publishedId].filter(Boolean)) {

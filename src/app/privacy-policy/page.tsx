@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 /** Single source of the "last reviewed" date for this policy. */
-const UPDATED = "2026-02-01";
+const UPDATED = "2026-10-13";
 
 export default async function PrivacyPolicyPage() {
   const [cmsHtml, contactEmail] = await Promise.all([
@@ -75,15 +75,27 @@ export default async function PrivacyPolicyPage() {
 
       <LegalSection id="analytics-ads">Analytics and advertising</LegalSection>
       <p>
-        We do not run third-party analytics. For advertising we use Google
-        AdSense, and only when an administrator has enabled it and you have
-        accepted optional cookies. No advertising script loads{" "}
-        <strong>until you consent</strong> through the cookie banner; if ads are
-        switched off, nothing is loaded at all. When ads are active, Google acts
-        as a separate controller for the data involved in serving ads, as
+        We use <strong>Google Analytics 4</strong> to understand how the site is
+        used, and only when an administrator has enabled it and you have accepted
+        optional cookies. No analytics script loads{" "}
+        <strong>until you consent</strong> through the cookie banner. Google
+        Analytics records aggregated page-view information (such as the page
+        visited, an approximate location derived from IP, and browser type) and
+        sets first-party <code>_ga</code> cookies for that purpose; Google acts
+        as a processor for this data under its own terms. We never send the
+        passwords, passphrases or random strings you generate or check — those
+        stay on your device and are excluded from every analytics event by
+        design.
+      </p>
+      <p>
+        For advertising we use Google AdSense, and only when an administrator has
+        enabled it and you have accepted optional cookies. No advertising script
+        loads <strong>until you consent</strong> through the cookie banner; if ads
+        are switched off, nothing is loaded at all. When ads are active, Google
+        acts as a separate controller for the data involved in serving ads, as
         described in Google&rsquo;s own policies. This policy is kept accurate to
         match whatever is actually enabled — we will never claim to collect
-        nothing while an advertising service is running.
+        nothing while an analytics or advertising service is running.
       </p>
 
       <LegalSection id="cookies">Cookies</LegalSection>

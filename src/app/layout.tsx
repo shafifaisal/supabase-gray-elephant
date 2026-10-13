@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { ConsentBanner } from "@/components/privacy/consent-banner";
@@ -72,6 +73,9 @@ export default function RootLayout({
         </main>
         <Footer />
         <ConsentBanner />
+        {/* Client-only; loads gtag.js only after the visitor consents AND the
+            admin has enabled analytics. Renders nothing in server HTML. */}
+        <GoogleAnalytics />
       </body>
     </html>
   );

@@ -41,9 +41,10 @@ clear before any ad is shown.
 - **Non-intrusive, clearly-labelled placement**: one responsive unit on `/guides`
   only, after content and visually separated. Ads are never placed on a tool
   page, and ad config is independent of password generation.
-- **Honest legal copy**: the privacy and cookie policies describe AdSense
-  accurately (runs only when enabled + consented; Google is a separate
-  controller; no analytics at all).
+- **Honest legal copy**: the privacy and cookie policies describe AdSense and
+  Google Analytics accurately (each runs only when enabled + consented; Google is
+  a separate controller for ad serving, a processor for analytics). Neither
+  script loads before consent.
 - **Admin visibility**: `/admin/seo` shows the exact readiness reason.
 
 ## 3. What remains before ads can run

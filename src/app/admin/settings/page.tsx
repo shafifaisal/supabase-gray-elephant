@@ -47,7 +47,8 @@ const PRESETS: { key: string; label: string; hint: string; value: string }[] = [
   {
     key: "analytics_enabled",
     label: "Enable analytics",
-    hint: "JSON boolean. Requires consent before any analytics script loads.",
+    hint:
+      'JSON boolean. Google Analytics 4 loads only when this is true AND a valid NEXT_PUBLIC_GA_MEASUREMENT_ID is set AND the visitor consents. Leave "false" to keep analytics off.',
     value: "false",
   },
   {

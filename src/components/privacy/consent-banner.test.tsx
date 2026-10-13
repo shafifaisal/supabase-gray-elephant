@@ -15,7 +15,8 @@ import { ConsentBanner } from "@/components/privacy/consent-banner";
  *   - it renders nothing when a decision already exists (returning visitor);
  *   - it renders for a first-time visitor;
  *   - choosing records a first-party cookie and hides the banner;
- *   - it never references analytics or advertising scripts.
+ *   - it describes the optional choice honestly and loads no script of its own
+ *     (the analytics/ad loaders are separate, consent-gated components).
  *
  * `react-dom/client` + `act` is used directly (no testing-library dependency,
  * per the repo's minimal-dependency rule).

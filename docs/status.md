@@ -183,7 +183,8 @@ tight enough to catch real bias, loose enough not to flake.
   accurately.
 - **Privacy/consent control** (`components/privacy/consent-banner.tsx`). Records
   a first-party consent cookie. Loads **nothing** before consent; no analytics
-  or ad script is referenced anywhere in served HTML. Uses
+  or ad script is referenced anywhere in served HTML — the Google Analytics and
+  AdSense loaders are client-only and gated on the stored decision. Uses
   `useSyncExternalStore` so it is never server-rendered (no hydration mismatch,
   invisible to no-JS/crawlers). Choice is persisted and re-read.
 - Footer and contact surfaces now use the effective (CMS-overridable) brand name
@@ -530,3 +531,65 @@ explicitly left as operator actions. Nothing below claims they were performed.
   repeats them and is the authority.
 - There is no separate control for the existing `og_image_id` column; the
   featured image is used for Open Graph, and `og_image_id` is left untouched.
+
+---
+
+## Google Analytics 4 (consent-gated, fail-closed) ✅ COMPLETE (live property unverified)
+
+**Completed**
+- **Analytics config layer** (`src/lib/analytics/config.ts`). Pure, fail-closed
+  resolution: analytics is enabled only when the admin `analytics_enabled`
+  setting is on **and** a syntactically valid `NEXT_PUBLIC_GA_MEASUREMENT_ID`
+  (`G-<alphanumerics>`) is present. A malformed value fails closed rather than
+  being embedded into a script URL. **No ID is ever fabricated**; when disabled
+  the resolved ID is `null`.
+- **Consent-gated loader** (`src/components/analytics/google-analytics.tsx`).
+  gtag.js is injected **only after** the visitor grants optional ("accept all")
+  consent, read from the first-party `ip_consent` cookie via the existing
+  `useHasOptionalConsent` hook (shared with AdSense). Before consent the loader
+  makes **no request at all** — it does not even ask the server whether analytics
+  is configured (the readiness fetch happens only after consent), so a visitor
+  who declines causes zero analytics traffic.
+- **Public API** `GET /api/analytics/config` — returns only non-sensitive
+  readiness (`enabled`, `measurementId` when enabled, `consentRequired`).
+  `no-store`. Never returns a secret; a missing/invalid ID is `null`, never
+  fabricated.
+- **Honest legal copy**: privacy policy, cookie policy and consent banner updated
+  to describe Google Analytics 4 accurately (runs only when enabled + consented;
+  names the `_ga` cookies; states plainly that generated secrets are never sent).
+  `UPDATED` dates bumped to 2026-10-13. The banner no longer claims "we never run
+  third-party analytics", which would otherwise have become false.
+
+**Files created**
+`src/lib/analytics/config.ts` (+ test),
+`src/components/analytics/google-analytics.tsx` (+ jsdom test),
+`src/app/api/analytics/config/route.ts`.
+
+**Files changed**
+`src/app/layout.tsx` (mount the loader), `src/components/privacy/consent-banner.tsx`
+(copy), `src/app/privacy-policy/page.tsx` + `src/app/cookie-policy/page.tsx`
+(accurate copy + dates), `src/app/admin/settings/page.tsx` (hint),
+`scripts/verify-content.mjs` (analytics checks), `docs/status.md`,
+`docs/adsense-readiness.md`.
+
+**Verification (all executed)**
+| Gate | Result |
+|---|---|
+| `npm run lint` | pass, 0 errors/warnings |
+| `npm run typecheck` | pass |
+| `npm test` | **272/272** (was 259; +13 new: config + jsdom loader) |
+| `npm run build` | pass, 32 pages |
+| `GET /api/analytics/config` (dev) | `{"enabled":false,"measurementId":null,"consentRequired":true}`, `no-store` |
+| production HTML scan | no `googletagmanager` / `google-analytics` / `gtag` in served HTML |
+
+**Known limitations — recorded, not hidden**
+- **Analytics is OFF in this environment** and correctly so: the admin
+  `analytics_enabled` setting defaults to `false`, so the config fails closed.
+  Turning it on requires the Vercel env var `NEXT_PUBLIC_GA_MEASUREMENT_ID` **and**
+  the admin setting **and** a visitor consenting.
+- Not exercised against a **live GA property** from this environment: the loader,
+  consent gate and config resolution are unit-tested and the build is verified,
+  but no real GA hit was observed in a browser here.
+- The value `NEXT_PUBLIC_GA_MEASUREMENT_ID` is read **server-side** in the
+  force-dynamic API route (it is not inlined into the client bundle), so adding
+  it on Vercel requires a redeploy to take effect.

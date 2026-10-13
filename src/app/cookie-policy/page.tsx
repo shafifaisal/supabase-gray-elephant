@@ -8,11 +8,11 @@ import { siteConfig } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Cookie Policy",
   description:
-    "Exactly which cookies iPassGenerator sets and why. We use only what is needed to run the site — no advertising or tracking cookies by default.",
+    "Exactly which cookies iPassGenerator sets and why. We use only what is needed to run the site — no analytics or advertising cookies unless you accept optional cookies.",
   alternates: { canonical: "/cookie-policy" },
 };
 
-const UPDATED = "2026-02-01";
+const UPDATED = "2026-10-13";
 
 export default async function CookiePolicyPage() {
   const [cmsHtml, contactEmail] = await Promise.all([
@@ -55,13 +55,23 @@ export default async function CookiePolicyPage() {
 
       <LegalSection id="analytics-ads">Analytics and advertising cookies</LegalSection>
       <p>
-        We do <strong>not</strong> run third-party analytics, and we never will
-        without your consent. For advertising, we use Google AdSense only when an
-        administrator has enabled it and you have accepted optional cookies. When
-        ads are active, Google may set cookies to serve and measure ads; those
-        cookies are never set before you consent through the cookie banner. If
-        ads are switched off, no advertising cookie is set at all. This page
-        names each cookie before it is used.
+        We use <strong>Google Analytics 4</strong> to understand which pages are
+        useful. It runs only when an administrator has enabled it and you have
+        accepted optional cookies. Until you consent, no analytics script loads
+        and no analytics cookie is set. When it is active, Google Analytics sets
+        first-party cookies — <code>_ga</code>, which distinguishes visitors, and{" "}
+        <code>_ga_&lt;id&gt;</code>, which keeps session state — so we can see
+        aggregated, anonymous usage. We never send the passwords, passphrases or
+        random strings you generate or check: those values never leave your
+        device.
+      </p>
+      <p>
+        For advertising, we use Google AdSense only when an administrator has
+        enabled it and you have accepted optional cookies. When ads are active,
+        Google may set cookies to serve and measure ads; those cookies are never
+        set before you consent through the cookie banner. If ads are switched
+        off, no advertising cookie is set at all. This page names each cookie
+        before it is used.
       </p>
 
       <LegalSection id="what-we-never-store">

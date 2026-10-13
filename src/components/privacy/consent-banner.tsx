@@ -8,10 +8,11 @@ import Link from "next/link";
  *
  * PRIVACY MODEL (see AGENTS.md §4)
  * --------------------------------
- * No analytics or advertising script is ever loaded by this component. It only
+ * This component loads no analytics or advertising script itself. It only
  * records the visitor's choice and stores it so it is not asked twice. The
- * actual scripts — when they exist in a later phase — must be gated on this
- * stored decision and must not load until consent is granted.
+ * actual scripts — Google Analytics (`components/analytics/google-analytics.tsx`)
+ * and AdSense (`components/ads/ad-slot.tsx`) — are gated on this stored decision
+ * via `lib/ads/use-consent.ts` and never load until consent is granted.
  *
  * WHY IT STILL SHOWS WHEN NOTHING IS ENABLED
  * ------------------------------------------
@@ -102,9 +103,9 @@ export function ConsentBanner() {
       <div className="container-page flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="max-w-2xl text-sm text-muted-foreground">
           We use only the cookies needed to run and secure this site. Optional
-          cookies let us show advertising; we never run third-party analytics,
-          and ads stay off until you accept them here. You can change this any
-          time — see the{" "}
+          cookies let us measure site usage and show advertising. Analytics and
+          ads stay off until you accept them here. You can change this any time
+          — see the{" "}
           <Link href="/cookie-policy" className="underline underline-offset-2">
             cookie policy
           </Link>
