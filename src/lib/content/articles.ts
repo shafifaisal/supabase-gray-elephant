@@ -85,6 +85,12 @@ export interface CategoryRow {
   position: number;
 }
 
+export interface TagRow {
+  id: string;
+  slug: string;
+  name: string;
+}
+
 const ARTICLE_COLUMNS = "id, slug, title, excerpt, body_md, body_html, body_format, status, author_id, category_id, featured_image_id, seo_title, meta_description, og_title, og_description, canonical_url, is_noindex, scheduled_for, published_at, created_at, updated_at";
 
 /**
@@ -255,6 +261,22 @@ export async function getCategories(): Promise<CategoryRow[]> {
   if (error) throw new Error(`Failed to load categories: ${error.message}`);
 
   return (data ?? []) as CategoryRow[];
+}
+
+/**
+ * Every tag, alphabetically.
+ */
+export async function getTags(): Promise<TagRow[]> {
+  const supabase = createBuildClient();
+
+  const { data, error } = await supabase
+    .from("tags")
+    .select("id, slug, name")
+    .order("name", { ascending: true });
+
+  if (error) throw new Error(`Failed to load tags: ${error.message}`);
+
+  return (data ?? []) as TagRow[];
 }
 
 /**

@@ -60,6 +60,17 @@ export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export const contactSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(120),
   email: z.string().trim().email("Enter a valid email address").max(254),
+  // Optional: validate the number only when the visitor provides one.
+  mobile: z
+    .string()
+    .trim()
+    .max(30, "Mobile number must be 30 characters or fewer")
+    .refine(
+      (value) => value === "" || /^\+?[\d\s().-]{6,30}$/.test(value),
+      "Enter a valid WhatsApp number",
+    )
+    .optional()
+    .or(z.literal("")),
   subject: z.string().trim().min(1, "Subject is required").max(200),
   message: z
     .string()

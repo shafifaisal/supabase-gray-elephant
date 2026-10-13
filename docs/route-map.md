@@ -34,6 +34,8 @@ Legal pages are CMS-editable (slug-pinned) so text stays accurate.
 | `/admin/articles/[id]/edit` | author (owner) / editor+ |
 | `/admin/categories` | editor |
 | `/admin/tags` | editor |
+| `/admin/messages` | editor |
+| `/admin/messages/export` | editor |
 | `/admin/media` | author |
 | `/admin/users` | admin |
 | `/admin/settings` | admin |

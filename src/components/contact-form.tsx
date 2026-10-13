@@ -82,6 +82,22 @@ export function ContactForm({
       </div>
 
       <div>
+        <label htmlFor="mobile" className="mb-1.5 block text-sm font-medium">
+          Whatsapp No.
+        </label>
+        <input
+          id="mobile"
+          name="mobile"
+          type="tel"
+          autoComplete="tel"
+          className={inputClasses}
+        />
+        {state.fieldErrors?.mobile ? (
+          <p className="mt-1 text-sm text-danger">{state.fieldErrors.mobile}</p>
+        ) : null}
+      </div>
+
+      <div>
         <label htmlFor="subject" className="mb-1.5 block text-sm font-medium">
           Subject
         </label>

@@ -16,8 +16,10 @@ export const metadata: Metadata = {
 const NAV = [
   { href: "/admin", label: "Dashboard", min: "author" },
   { href: "/admin/articles", label: "Articles", min: "author" },
+  { href: "/admin/messages", label: "Messages", min: "editor" },
   { href: "/admin/media", label: "Media", min: "author" },
   { href: "/admin/categories", label: "Categories", min: "editor" },
+  { href: "/admin/tags", label: "Tags", min: "editor" },
   { href: "/admin/seo", label: "SEO", min: "admin" },
   { href: "/admin/users", label: "Users", min: "admin" },
   { href: "/admin/settings", label: "Settings", min: "admin" },

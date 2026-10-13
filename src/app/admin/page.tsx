@@ -24,6 +24,7 @@ export default async function AdminDashboardPage() {
 
   const sections = [
     { href: "/admin/articles", label: "Articles", min: "author" },
+    { href: "/admin/messages", label: "Messages", min: "editor" },
     { href: "/admin/media", label: "Media", min: "author" },
     { href: "/admin/categories", label: "Categories", min: "editor" },
     { href: "/admin/tags", label: "Tags", min: "editor" },

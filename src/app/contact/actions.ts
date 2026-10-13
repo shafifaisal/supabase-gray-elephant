@@ -46,6 +46,7 @@ export async function contactAction(
   const parsed = contactSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
+    mobile: formData.get("mobile") ?? "",
     subject: formData.get("subject"),
     message: formData.get("message"),
     website: formData.get("website") ?? "",
@@ -80,6 +81,7 @@ export async function contactAction(
   const { error } = await supabase.from("contact_messages").insert({
     name: parsed.data.name,
     email: parsed.data.email,
+    mobile: parsed.data.mobile || null,
     subject: parsed.data.subject,
     message: parsed.data.message,
     ip_address: ip,

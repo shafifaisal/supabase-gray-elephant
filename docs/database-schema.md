@@ -93,7 +93,7 @@ node --env-file=.env.local scripts/set-role.mjs user@example.com admin
 | media | `visibility = 'public'` | own uploads | all | all |
 | site_settings | non-secret keys | – | – | write |
 | audit_logs | none | append | none | read |
-| contact_messages | insert only | – | read | read/update |
+| contact_messages | insert only | – | read | read/update/delete |
 | profiles | own row (role pinned) | own safe fields | read | all |
 
 ## Guards (defence in depth)
