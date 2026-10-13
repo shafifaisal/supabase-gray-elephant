@@ -30,6 +30,22 @@ import type { ArticleStatus } from "@/lib/validation/article";
  *
  * Logged rather than swallowed: failing softly must not mean failing silently.
  */
+function sanitizeErrorMessage(error: unknown): string {
+  if (error && typeof error === "object") {
+    const err = error as Record<string, unknown>;
+    const message = typeof err.message === "string" ? err.message : "";
+    if (message && message.trim().startsWith("<")) {
+      const status = typeof err.status === "number" || typeof err.status === "string" ? err.status : "unknown";
+      const statusText = typeof err.statusText === "string" ? err.statusText : "";
+      return statusText ? `${status} ${statusText}` : String(status);
+    }
+    if (message) return message;
+    const code = typeof err.code === "string" || typeof err.code === "number" ? err.code : "";
+    if (code) return String(code);
+  }
+  return "Unknown error";
+}
+
 async function failSoft<T>(
   label: string,
   read: () => Promise<T>,
@@ -38,10 +54,11 @@ async function failSoft<T>(
   try {
     return await read();
   } catch (error) {
+    const safeMessage = sanitizeErrorMessage(error);
     console.error(
       `[content] ${label} failed; degrading to an empty result. ` +
         "Check that the database is reachable and migrations are applied.",
-      error,
+      safeMessage,
     );
     return fallback;
   }
@@ -114,7 +131,9 @@ export async function getPublishedArticles(limit = 50): Promise<ArticleRow[]> {
         .order("published_at", { ascending: false })
         .limit(limit);
 
-      if (error) throw new Error(`Failed to load articles: ${error.message}`);
+      if (error) {
+        throw new Error(`Failed to load articles: ${sanitizeErrorMessage(error)}`);
+      }
 
       return (data ?? []) as ArticleRow[];
     },
@@ -154,7 +173,9 @@ export async function searchPublishedArticles(
         .order("published_at", { ascending: false })
         .limit(limit);
 
-      if (error) throw new Error(`Failed to search articles: ${error.message}`);
+      if (error) {
+        throw new Error(`Failed to search articles: ${sanitizeErrorMessage(error)}`);
+      }
 
       return (data ?? []) as ArticleRow[];
     },
@@ -186,7 +207,9 @@ export async function getPublishedArticleBySlug(
         .eq("is_noindex", false)
         .maybeSingle<ArticleRow>();
 
-      if (error) throw new Error(`Failed to load article: ${error.message}`);
+      if (error) {
+        throw new Error(`Failed to load article: ${sanitizeErrorMessage(error)}`);
+      }
 
       return data ?? null;
     },
@@ -207,7 +230,9 @@ export async function getPublishedSlugs(): Promise<string[]> {
         .eq("status", "published")
         .eq("is_noindex", false);
 
-      if (error) throw new Error(`Failed to load slugs: ${error.message}`);
+      if (error) {
+        throw new Error(`Failed to load slugs: ${sanitizeErrorMessage(error)}`);
+      }
 
       return (data ?? []).map((row) => row.slug);
     },
@@ -234,7 +259,9 @@ export async function getPublishedSlugsLive(): Promise<string[]> {
         .eq("status", "published")
         .eq("is_noindex", false);
 
-      if (error) throw new Error(`Failed to load slugs: ${error.message}`);
+      if (error) {
+        throw new Error(`Failed to load slugs: ${sanitizeErrorMessage(error)}`);
+      }
 
       return (data ?? []).map((row) => row.slug);
     },
@@ -258,7 +285,9 @@ export async function getCategories(): Promise<CategoryRow[]> {
     .order("position", { ascending: true })
     .order("name", { ascending: true });
 
-  if (error) throw new Error(`Failed to load categories: ${error.message}`);
+  if (error) {
+    throw new Error(`Failed to load categories: ${sanitizeErrorMessage(error)}`);
+  }
 
   return (data ?? []) as CategoryRow[];
 }
@@ -274,7 +303,9 @@ export async function getTags(): Promise<TagRow[]> {
     .select("id, slug, name")
     .order("name", { ascending: true });
 
-  if (error) throw new Error(`Failed to load tags: ${error.message}`);
+  if (error) {
+    throw new Error(`Failed to load tags: ${sanitizeErrorMessage(error)}`);
+  }
 
   return (data ?? []) as TagRow[];
 }
