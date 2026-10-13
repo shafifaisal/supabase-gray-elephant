@@ -24,12 +24,12 @@ export default async function HomePage() {
 
   return (
     <>
-      <section className="relative isolate w-full overflow-hidden border-b border-border bg-[#04070f] text-white">
+      <section className="relative isolate flex min-h-[32rem] items-center overflow-hidden border-b border-border bg-[#04070f] text-white sm:min-h-[36rem] lg:min-h-[40rem]">
         <div
           aria-hidden="true"
           className="absolute inset-0 -z-20 bg-[url(/hero-banner.jpg)] bg-cover bg-center bg-no-repeat"
         />
-        <div className="container-page py-16 sm:py-24">
+        <div className="container-page w-full py-12 sm:py-16">
           <div className="max-w-3xl">
             <p className="text-sm font-semibold tracking-wide text-sky-300 uppercase">
               Runs entirely in your browser
