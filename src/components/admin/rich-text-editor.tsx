@@ -132,7 +132,7 @@ export function RichTextEditor({
     editorProps: {
       attributes: {
         class:
-          "prose-guides min-h-[22rem] px-4 py-4 focus:outline-none sm:min-h-[28rem]",
+          "prose-guides min-h-[22rem] max-h-[500px] overflow-y-auto overscroll-contain px-4 py-4 focus:outline-none sm:min-h-[28rem]",
         "aria-label": "Article body",
       },
     },
