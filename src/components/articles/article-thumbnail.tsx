@@ -6,11 +6,28 @@ import { articleImageAlt } from "@/lib/seo/alt-text";
 /**
  * A fixed 16:9 thumbnail for an article.
  *
- * Every thumbnail shares the same aspect ratio and uses `object-fit: cover`, so
- * cards line up regardless of the source image's proportions. When an article
- * has no featured image, an inline placeholder is shown instead — never a
- * broken-image icon. The wrapper reserves the space (aspect ratio) to prevent
- * layout shift while the image loads.
+ * Every thumbnail shares the same aspect ratio, so cards line up across
+ * desktop, tablet and mobile and the wrapper reserves its space up front (no
+ * layout shift while the image loads).
+ *
+ * Inside that box the image fills the frame from edge to edge:
+ *   * `fill` makes the <img> absolutely positioned at inset-0, and the explicit
+ *     `h-full w-full` size it to 100% of the container in both axes.
+ *   * `object-cover` scales the image proportionally until it covers the whole
+ *     box, then crops the overflow centred via `object-center`.
+ *   * `overflow-hidden` on the wrapper clips that overflow, so a mismatched
+ *     aspect ratio is cropped rather than spilling outside the card.
+ *
+ * Because the scale is proportional the image is never stretched or distorted;
+ * `object-fit: contain` was tried previously and rejected because it left
+ * blank bars on the sides of every non-16:9 image.
+ *
+ * There is deliberately NO padding or margin on the image or the wrapper: any
+ * internal spacing would stop the picture from reaching the four edges and
+ * reintroduce the gap this component exists to avoid.
+ *
+ * When an article has no featured image, an inline placeholder is shown
+ * instead — never a broken-image icon.
  */
 export function ArticleThumbnail({
   image,
@@ -27,7 +44,7 @@ export function ArticleThumbnail({
 }) {
   return (
     <div
-      className={`relative aspect-video w-full overflow-hidden bg-secondary ${className}`}
+      className={`relative block aspect-video w-full overflow-hidden bg-secondary ${className}`}
     >
       {image ? (
         <Image
@@ -36,7 +53,7 @@ export function ArticleThumbnail({
           fill
           sizes={sizes}
           priority={priority}
-          className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.03]"
         />
       ) : (
         <span
