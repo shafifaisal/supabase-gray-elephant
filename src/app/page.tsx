@@ -104,6 +104,7 @@ export default async function HomePage() {
             {latestArticles.map((article) => (
               <li key={article.id}>
                 <ArticleCard
+                  headingLevel="h3"
                   article={article}
                   image={
                     article.featured_image_id
