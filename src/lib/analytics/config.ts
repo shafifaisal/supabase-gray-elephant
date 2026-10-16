@@ -27,7 +27,7 @@ import "server-only";
 
 /**
  * A GA4 measurement ID has the form `G-` followed by uppercase letters and
- * digits (e.g. `G-F821LK82PY`). This validates the shape only, so a malformed
+ * digits (e.g. `G-FM1QKB6H5P`). This validates the shape only, so a malformed
  * value fails closed rather than being embedded into a script URL.
  */
 const GA4_MEASUREMENT_ID_PATTERN = /^G-[A-Z0-9]{4,}$/;
@@ -38,7 +38,7 @@ const GA4_MEASUREMENT_ID_PATTERN = /^G-[A-Z0-9]{4,}$/;
  * Google Analytics itself generates and ships to the browser anyway. It is a
  * real ID owned by the site, never a placeholder or fabricated value.
  */
-export const DEFAULT_GA_MEASUREMENT_ID = "G-F821LK82PY";
+export const DEFAULT_GA_MEASUREMENT_ID = "G-FM1QKB6H5P";
 
 /** Whether a value looks like a real GA4 measurement ID. */
 export function isValidGaMeasurementId(

@@ -64,7 +64,7 @@ afterEach(() => {
 describe("GoogleAnalytics", () => {
   it("makes NO request and injects nothing when no decision is recorded", async () => {
     setConsent("");
-    const fetchMock = mockConfig({ enabled: true, measurementId: "G-F821LK82PY" });
+    const fetchMock = mockConfig({ enabled: true, measurementId: "G-FM1QKB6H5P" });
     await render();
     expect(fetchMock).not.toHaveBeenCalled();
     expect(document.getElementById("ga-gtag-js")).toBeNull();
@@ -72,7 +72,7 @@ describe("GoogleAnalytics", () => {
 
   it("respects 'essential only' consent — no request, no script", async () => {
     setConsent("essential");
-    const fetchMock = mockConfig({ enabled: true, measurementId: "G-F821LK82PY" });
+    const fetchMock = mockConfig({ enabled: true, measurementId: "G-FM1QKB6H5P" });
     await render();
     expect(fetchMock).not.toHaveBeenCalled();
     expect(document.getElementById("ga-gtag-js")).toBeNull();
@@ -80,7 +80,7 @@ describe("GoogleAnalytics", () => {
 
   it("injects gtag.js only after consent AND when the server says enabled", async () => {
     setConsent("all");
-    const fetchMock = mockConfig({ enabled: true, measurementId: "G-F821LK82PY" });
+    const fetchMock = mockConfig({ enabled: true, measurementId: "G-FM1QKB6H5P" });
     await render();
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -92,12 +92,12 @@ describe("GoogleAnalytics", () => {
     const script = document.getElementById("ga-gtag-js");
     expect(script).not.toBeNull();
     expect(script?.getAttribute("src")).toBe(
-      "https://www.googletagmanager.com/gtag/js?id=G-F821LK82PY",
+      "https://www.googletagmanager.com/gtag/js?id=G-FM1QKB6H5P",
     );
 
     const dataLayer = (window as { dataLayer?: unknown[] }).dataLayer;
     expect(dataLayer?.[0]).toEqual(["js", expect.any(Date)]);
-    expect(dataLayer?.[1]).toEqual(["config", "G-F821LK82PY"]);
+    expect(dataLayer?.[1]).toEqual(["config", "G-FM1QKB6H5P"]);
   });
 
   it("injects nothing when the admin toggle / env leaves analytics disabled", async () => {
@@ -110,7 +110,7 @@ describe("GoogleAnalytics", () => {
 
   it("injects at most one script even across re-renders", async () => {
     setConsent("all");
-    mockConfig({ enabled: true, measurementId: "G-F821LK82PY" });
+    mockConfig({ enabled: true, measurementId: "G-FM1QKB6H5P" });
     await render();
     await act(async () => {
       root.render(<GoogleAnalytics />);

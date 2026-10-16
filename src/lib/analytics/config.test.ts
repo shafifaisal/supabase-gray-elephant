@@ -34,11 +34,11 @@ afterEach(() => {
 
 describe("isValidGaMeasurementId — shape only, never a real ID", () => {
   it("accepts the G-<alphanumerics> shape", () => {
-    expect(isValidGaMeasurementId("G-F821LK82PY")).toBe(true);
+    expect(isValidGaMeasurementId("G-FM1QKB6H5P")).toBe(true);
   });
 
   it("is case-insensitive about the letters", () => {
-    expect(isValidGaMeasurementId("g-f821lk82py")).toBe(true);
+    expect(isValidGaMeasurementId("g-fm1qkb6h5p")).toBe(true);
   });
 
   it("rejects missing, malformed or unrelated values", () => {
@@ -55,7 +55,7 @@ describe("isValidGaMeasurementId — shape only, never a real ID", () => {
 describe("gaMeasurementId — env overrides the bundled default", () => {
   it("falls back to the owner's bundled ID when the env var is unset", () => {
     setGaEnv();
-    expect(gaMeasurementId()).toBe("G-F821LK82PY");
+    expect(gaMeasurementId()).toBe("G-FM1QKB6H5P");
   });
 
   it("fails closed when the env var is present but malformed", () => {
@@ -71,7 +71,7 @@ describe("gaMeasurementId — env overrides the bundled default", () => {
 
 describe("resolveAnalyticsConfig — fail closed", () => {
   it("is disabled when the admin has not enabled analytics", () => {
-    setGaEnv("G-F821LK82PY");
+    setGaEnv("G-FM1QKB6H5P");
     const config = resolveAnalyticsConfig(false);
     expect(config.enabled).toBe(false);
     expect(config.measurementId).toBeNull();
@@ -88,13 +88,13 @@ describe("resolveAnalyticsConfig — fail closed", () => {
     setGaEnv();
     const config = resolveAnalyticsConfig(true);
     expect(config.enabled).toBe(true);
-    expect(config.measurementId).toBe("G-F821LK82PY");
+    expect(config.measurementId).toBe("G-FM1QKB6H5P");
   });
 
   it("is enabled only when admin-enabled AND a valid ID is set", () => {
-    setGaEnv("G-F821LK82PY");
+    setGaEnv("G-FM1QKB6H5P");
     const config = resolveAnalyticsConfig(true);
     expect(config.enabled).toBe(true);
-    expect(config.measurementId).toBe("G-F821LK82PY");
+    expect(config.measurementId).toBe("G-FM1QKB6H5P");
   });
 });

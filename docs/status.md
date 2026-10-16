@@ -711,3 +711,50 @@ GA fires without needing a Vercel environment variable.
 server reads `.env.local`, which already sets the same value, so the runtime
 check exercises the env path. Set the env var in Vercel only if you ever need to
 override the bundled default.
+
+## GA measurement ID replaced (2026-10-16)
+
+**Request.** The owner deleted the GA4 property holding `G-F821LK82PY`, created a
+new property, and supplied the standard gtag.js snippet for the replacement ID
+`G-FM1QKB6H5P`.
+
+**Change** (`src/lib/analytics/config.ts`)
+- `DEFAULT_GA_MEASUREMENT_ID` updated to `G-FM1QKB6H5P`. This is the only
+  behavioural change; the consent gate, the fail-closed validation, the
+  `/api/analytics/config` contract and the `verify-content.mjs` consent assertion
+  are all unchanged, so AGENTS.md §4 still holds.
+- `NEXT_PUBLIC_GA_MEASUREMENT_ID` in `.env.local` (untracked) set to the same
+  value so local development does not silently keep using the retired ID.
+
+**Files changed**
+`src/lib/analytics/config.ts`, `src/lib/analytics/config.test.ts`,
+`src/components/analytics/google-analytics.test.tsx`, `docs/status.md`.
+
+**Database**
+`site_settings.analytics_enabled` was set to `false` while the property was
+deleted, then returned to `true` once the replacement property existed. No schema
+change and no migration; the toggle is a plain JSONB boolean.
+
+**Verification (all executed)**
+| Gate | Result |
+|---|---|
+| `npm run lint` | pass, 0 errors/warnings |
+| `npm run typecheck` | pass |
+| `npm test` | **320/320** across 27 files |
+| database | anon/RLS read of `analytics_enabled` → `true` |
+
+**Not verified.** The production `/api/analytics/config` response was not
+re-checked after this change, because it still reflects the previous deployment
+until this commit is pushed and Vercel redeploys.
+
+**Risk — Vercel environment override.** `gaMeasurementId()` prefers
+`NEXT_PUBLIC_GA_MEASUREMENT_ID` over the bundled default. If that variable is
+still set to `G-F821LK82PY` in the Vercel project, production will keep sending
+hits to the deleted property and the bundled default will be ignored. Check
+Vercel → Settings → Environment Variables, and either update it to
+`G-FM1QKB6H5P` or remove it so the bundled default applies.
+
+**Note.** GA4 property deletion resets all historical reporting, so the new
+property starts with no data. Realtime will also undercount for as long as the
+consent gate is in place: visitors who decline optional consent send nothing,
+which is the intended privacy behaviour rather than a defect.
