@@ -7,12 +7,17 @@ import { getTool } from "@/lib/tools";
 
 const tool = getTool("password-generator")!;
 
-const pageTitle = "Instant Password Generator - Free Tool Secure & Reliable";
+/**
+ * Rendered through the root layout's `%s | <brand>` title template, so the
+ * brand suffix stays in sync with the admin-editable site name instead of
+ * being hard-coded here.
+ */
+const pageTitle = "Free Password Generator – Create Strong, Random Passwords";
 const pageDescription =
-  "Free password generator to create strong, secure random passwords online. Customize length, symbols, and complexity with real-time entropy insights.";
+  "Generate strong, random passwords online for free. Customize password length and choose uppercase letters, lowercase letters, numbers, and symbols. Create secure passwords in seconds.";
 
 export const metadata: Metadata = {
-  title: { absolute: pageTitle },
+  title: pageTitle,
   description: pageDescription,
   keywords: [...tool.keywords],
   alternates: { canonical: "/password-generator" },
@@ -29,7 +34,7 @@ export default function PasswordGeneratorPage() {
     <div className="container-page py-10">
       <div className="max-w-3xl">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          {tool.name}
+          Free Online Password Generator
         </h1>
         <p className="mt-3 text-lg text-muted-foreground">{tool.description}</p>
       </div>
