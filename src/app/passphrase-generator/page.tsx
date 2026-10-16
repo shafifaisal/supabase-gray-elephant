@@ -8,14 +8,22 @@ import { WORDLIST_ATTRIBUTION, WORDLIST_LICENSE_URL } from "@/lib/crypto/wordlis
 
 const tool = getTool("passphrase-generator")!;
 
+/**
+ * Rendered through the root layout's `%s | <brand>` title template, so the
+ * brand suffix follows the admin-editable site name.
+ */
+const pageTitle = "Free Passphrase Generator – Memorable Strong Passwords";
+const pageDescription =
+  "Generate memorable passphrases from a 7,776-word list. Choose the word count, separator and capitalisation. Runs in your browser, never sent to a server.";
+
 export const metadata: Metadata = {
-  title: tool.name,
-  description: tool.description,
+  title: pageTitle,
+  description: pageDescription,
   keywords: [...tool.keywords],
   alternates: { canonical: "/passphrase-generator" },
   openGraph: {
-    title: `${tool.name} — runs in your browser`,
-    description: tool.description,
+    title: pageTitle,
+    description: pageDescription,
     url: absoluteUrl("/passphrase-generator"),
     type: "website",
   },

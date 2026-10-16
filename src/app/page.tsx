@@ -6,12 +6,28 @@ import { FaqSection } from "@/components/faq/faq-section";
 import { Card, SectionHeading } from "@/components/ui/primitives";
 import { getPublishedArticles } from "@/lib/content/articles";
 import { getPublicMediaMap } from "@/lib/media/urls";
-import { getSiteDescription } from "@/lib/settings/public";
+import { getSiteDescription, getSiteIdentity } from "@/lib/settings/public";
 import { toolPath, tools } from "@/lib/tools";
 
+/**
+ * Root title, distinct from /password-generator on purpose: the homepage sells
+ * the whole tool set, that page sells the generator itself. Kept under ~60
+ * characters so the brand suffix still fits inside Google's pixel budget.
+ *
+ * The brand is appended here rather than by the layout's `%s | <brand>`
+ * template, because that template does not apply to the root segment's own
+ * title — without this the homepage shipped with no brand in its `<title>`
+ * while every other page had one. Reading the name from `getSiteIdentity()`
+ * keeps it admin-editable. `getSiteDescription()` is likewise editable from
+ * /admin/settings, so the description is not hard-coded.
+ */
+const pageTitle = "Free Password Generator & Password Security Tools";
+
 export async function generateMetadata(): Promise<Metadata> {
+  const { name } = await getSiteIdentity();
+
   return {
-    title: { absolute: "Instant Password Generator - Free Tool Secure & Reliable" },
+    title: { absolute: `${pageTitle} | ${name}` },
     description: await getSiteDescription(),
     alternates: { canonical: "/" },
   };

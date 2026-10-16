@@ -5,14 +5,18 @@ import { getTool } from "@/lib/tools";
 
 const tool = getTool("password-strength-checker")!;
 
+const pageTitle = "Password Strength Checker – Check Any Password Safely";
+const pageDescription =
+  "See how strong a password is: length, repetition, sequences and common words. The check runs entirely in your browser, so the password is never sent or stored.";
+
 export const metadata: Metadata = {
-  title: tool.name,
-  description: tool.description,
+  title: pageTitle,
+  description: pageDescription,
   keywords: [...tool.keywords],
   alternates: { canonical: "/password-strength-checker" },
   openGraph: {
-    title: `${tool.name} — local only`,
-    description: tool.description,
+    title: pageTitle,
+    description: pageDescription,
     url: "/password-strength-checker",
     type: "website",
   },

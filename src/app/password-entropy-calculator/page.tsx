@@ -5,14 +5,18 @@ import { getTool } from "@/lib/tools";
 
 const tool = getTool("password-entropy-calculator")!;
 
+const pageTitle = "Password Entropy Calculator – See How Strong a Password Is";
+const pageDescription =
+  "Calculate the bits of entropy in a random password or passphrase and see the maths. Compare character pools and word counts, and learn why it is an upper bound.";
+
 export const metadata: Metadata = {
-  title: tool.name,
-  description: tool.description,
+  title: pageTitle,
+  description: pageDescription,
   keywords: [...tool.keywords],
   alternates: { canonical: "/password-entropy-calculator" },
   openGraph: {
-    title: `${tool.name} — see the maths`,
-    description: tool.description,
+    title: pageTitle,
+    description: pageDescription,
     url: "/password-entropy-calculator",
     type: "website",
   },

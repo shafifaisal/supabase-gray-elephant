@@ -7,14 +7,18 @@ import { getTool } from "@/lib/tools";
 
 const tool = getTool("random-string-generator")!;
 
+const pageTitle = "Free Random String Generator – Tokens, Keys & IDs";
+const pageDescription =
+  "Create secure random strings for API keys, tokens, salts and identifiers. Pick the length and character sets. Generated in your browser, never sent to a server.";
+
 export const metadata: Metadata = {
-  title: tool.name,
-  description: tool.description,
+  title: pageTitle,
+  description: pageDescription,
   keywords: [...tool.keywords],
   alternates: { canonical: "/random-string-generator" },
   openGraph: {
-    title: `${tool.name} — runs in your browser`,
-    description: tool.description,
+    title: pageTitle,
+    description: pageDescription,
     url: absoluteUrl("/random-string-generator"),
     type: "website",
   },
