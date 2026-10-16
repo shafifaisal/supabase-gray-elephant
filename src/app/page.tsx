@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ArticleCard } from "@/components/articles/article-card";
+import { FaqSection } from "@/components/faq/faq-section";
 import { Card, SectionHeading } from "@/components/ui/primitives";
 import { getPublishedArticles } from "@/lib/content/articles";
 import { getPublicMediaMap } from "@/lib/media/urls";
@@ -115,6 +116,8 @@ export default async function HomePage() {
           </ul>
         </section>
       ) : null}
+
+      <FaqSection />
 
       <section className="border-t border-border bg-secondary/30">
         <div className="container-page py-16">
