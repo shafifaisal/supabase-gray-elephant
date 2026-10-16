@@ -76,6 +76,34 @@ export async function getContactMessages(
 }
 
 /**
+ * How many messages are still unread, i.e. `status = 'new'`.
+ *
+ * `head: true` makes this a count-only request: no message name, email or body
+ * crosses the wire, because the dashboard badge needs a number and nothing
+ * else. The `contact_messages_status_idx` index covers the filter.
+ *
+ * Like every other getter here it throws on failure rather than reporting 0,
+ * because "0 unread" and "the count failed" must not look identical to an
+ * editor. RLS (`contact_messages_staff_read`, `is_editor()`) means an author
+ * calling this simply sees 0 rows, so callers must gate on role instead of
+ * reading 0 as an empty inbox.
+ */
+export async function countUnreadMessages(): Promise<number> {
+  const supabase = await createClient();
+
+  const { count, error } = await supabase
+    .from("contact_messages")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "new");
+
+  if (error) {
+    throw new Error(`Failed to count unread contact messages: ${error.message}`);
+  }
+
+  return count ?? 0;
+}
+
+/**
  * Every contact message, newest first, for the bulk export.
  *
  * Staff-only: the same `is_editor()` RLS policy that governs the inbox applies

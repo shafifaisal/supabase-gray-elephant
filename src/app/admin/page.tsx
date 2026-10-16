@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { signOutAction } from "@/app/login/actions";
-import { roleAtLeast, requireRole } from "@/lib/auth/session";
-import { ROLES } from "@/lib/auth/session";
-import { formatDateTime } from "@/lib/format";
+import { roleAtLeast, requireRole, type Role } from "@/lib/auth/session";
+import { countUnreadMessages } from "@/lib/content/contact-messages";
 
 /**
  * `instant = false` opts this route out of static prerendering.
@@ -22,9 +21,27 @@ export const metadata: Metadata = {
 export default async function AdminDashboardPage() {
   const user = await requireRole("author");
 
-  const sections = [
+  // RLS on `contact_messages` only lets editors read the table, so an author
+  // would be shown a count of 0 for an inbox they are not allowed to open.
+  // Skip the query for them and leave the badge off entirely.
+  const unreadMessages = roleAtLeast(user.role, "editor")
+    ? await countUnreadMessages()
+    : null;
+
+  const sections: ReadonlyArray<{
+    href: string;
+    label: string;
+    min: Role;
+    /** Unread count shown after the label, when the viewer may read it. */
+    unread?: number;
+  }> = [
     { href: "/admin/articles", label: "Articles", min: "author" },
-    { href: "/admin/messages", label: "Messages", min: "editor" },
+    {
+      href: "/admin/messages",
+      label: "Messages",
+      min: "editor",
+      unread: unreadMessages ?? undefined,
+    },
     { href: "/admin/media", label: "Media", min: "author" },
     { href: "/admin/categories", label: "Categories", min: "editor" },
     { href: "/admin/tags", label: "Tags", min: "editor" },
@@ -32,7 +49,7 @@ export default async function AdminDashboardPage() {
     { href: "/admin/settings", label: "Settings", min: "admin" },
     { href: "/admin/seo", label: "SEO", min: "admin" },
     { href: "/admin/audit-logs", label: "Audit logs", min: "admin" },
-  ] as const;
+  ];
 
   return (
     <div className="container-page py-10">
@@ -60,10 +77,17 @@ export default async function AdminDashboardPage() {
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {sections.map((section) => {
-          const allowed = roleAtLeast(user.role, section.min as never);
+          const allowed = roleAtLeast(user.role, section.min);
           const content = (
             <>
-              <span className="font-semibold">{section.label}</span>
+              <span className="font-semibold">
+                {section.label}
+                {section.unread !== undefined ? (
+                  <span className="ml-1 font-mono text-sm font-normal text-muted-foreground">
+                    ({section.unread})
+                  </span>
+                ) : null}
+              </span>
               <span className="mt-1 block text-xs text-muted-foreground">
                 {allowed ? `Requires ${section.min}` : `Requires ${section.min} — no access`}
               </span>
@@ -88,22 +112,6 @@ export default async function AdminDashboardPage() {
             </div>
           );
         })}
-      </div>
-
-      <div className="mt-10 rounded-[var(--radius-card)] border border-border bg-secondary/40 p-9">
-        <h2 className="text-sm font-semibold uppercase tracking-wide">
-          Session details
-        </h2>
-        <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-          <dt className="text-muted-foreground">User ID</dt>
-          <dd className="font-mono text-xs">{user.id}</dd>
-          <dt className="text-muted-foreground">Account status</dt>
-          <dd>{user.status}</dd>
-          <dt className="text-muted-foreground">Available roles</dt>
-          <dd>{ROLES.join(", ")}</dd>
-          <dt className="text-muted-foreground">Rendered</dt>
-          <dd>{formatDateTime(new Date())}</dd>
-        </dl>
       </div>
     </div>
   );
