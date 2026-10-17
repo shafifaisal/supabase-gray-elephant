@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { absoluteUrl, siteConfig } from "@/lib/site";
+import { absoluteUrl } from "@/lib/site";
 
 export default function robots(): MetadataRoute.Robots {
   const disallow = ["/admin", "/admin/", "/api/", "/login", "/auth/"];
@@ -14,6 +14,5 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: absoluteUrl("/sitemap.xml"),
-    host: siteConfig.url,
   };
 }
