@@ -9,6 +9,7 @@ import {
   type ArticleRow,
 } from "@/lib/content/articles";
 import { sanitizeForRender } from "@/lib/content/markdown";
+import { ArticleCard } from "@/components/articles/article-card";
 import { ArticleThumbnail } from "@/components/articles/article-thumbnail";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbNode } from "@/lib/seo/structured-data";
@@ -281,13 +282,19 @@ export default async function ArticlePage({
             for how that is implemented.
           </p>
         </div>
-
-        {/* Related articles are secondary; stream them so the main content
-            above is never blocked by them. */}
-        <Suspense fallback={null}>
-          <RelatedArticles article={article} />
-        </Suspense>
       </div>
+
+      {/* Related articles are secondary; stream them so the main content
+          above is never blocked by them.
+
+          This sits OUTSIDE the `max-w-3xl` prose column on purpose. The body
+          copy needs a narrow measure to stay readable, but a related-article
+          grid is a multi-column layout: capping it at 48rem squeezed each card
+          to ~22rem, which left the thumbnail filling the card and the title
+          wrapping one or two words per line. */}
+      <Suspense fallback={null}>
+        <RelatedArticles article={article} />
+      </Suspense>
     </article>
   );
 }
@@ -300,31 +307,41 @@ async function getRelatedWithImages(article: ArticleRow) {
   return { related, map };
 }
 
+/**
+ * "Related reading" — the same cards, in the same grid, as the homepage's
+ * "Latest articles" section.
+ *
+ * This deliberately reuses `<ArticleCard/>` rather than drawing a second,
+ * "related"-flavoured card. A bespoke variant here had already drifted once:
+ * a horizontal row that clipped the title into a one-word-per-line column.
+ * Reusing the component means that failure mode cannot come back, and the
+ * grid classes below are copied from `src/app/page.tsx` so the two sections
+ * stay visually identical.
+ *
+ * `headingLevel="h3"` because this sits under its own `<h2>`; the default
+ * `"h2"` would make each card title a sibling of the section heading.
+ */
 function RelatedArticles({ article }: { article: ArticleRow }) {
   const { related, map } = use(getRelatedWithImages(article));
 
   if (related.length === 0) return null;
 
   return (
-    <section className="mt-10">
+    <section className="mt-12">
       <h2 className="text-lg font-semibold">Related reading</h2>
-      <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+      {/* Same grid as the homepage "Latest articles" list: 1 / 2 / 3 columns. */}
+      <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {related.map((item) => (
           <li key={item.id}>
-            <Link
-              href={`/articles/${item.slug}`}
-              className="group flex items-center gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-secondary/60"
-            >
-              <ArticleThumbnail
-                image={item.featured_image_id ? map.get(item.featured_image_id) ?? null : null}
-                title={item.title}
-                sizes="8rem"
-                className="w-32 shrink-0 rounded-md border border-border"
-              />
-              <span className="text-sm font-medium group-hover:text-primary">
-                {item.title}
-              </span>
-            </Link>
+            <ArticleCard
+              headingLevel="h3"
+              article={item}
+              image={
+                item.featured_image_id
+                  ? map.get(item.featured_image_id) ?? null
+                  : null
+              }
+            />
           </li>
         ))}
       </ul>

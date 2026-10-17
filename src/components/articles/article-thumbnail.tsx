@@ -26,6 +26,17 @@ import { articleImageAlt } from "@/lib/seo/alt-text";
  * internal spacing would stop the picture from reaching the four edges and
  * reintroduce the gap this component exists to avoid.
  *
+ * WARNING — `className` CANNOT REPLACE THE `w-full` ABOVE.
+ * Pass a width here (`className="w-32"` etc.) and it will silently do nothing.
+ * `w-full` and `w-32` are the same specificity, so the winner is decided by
+ * the order Tailwind emits them into the stylesheet, not by the order they
+ * appear in `className` — and `w-full` is emitted last. To render this at a
+ * size other than 100% of its parent, put a sized element AROUND it:
+ *
+ *     <div className="w-40 shrink-0">
+ *       <ArticleThumbnail image={image} title={title} />
+ *     </div>
+ *
  * When an article has no featured image, an inline placeholder is shown
  * instead — never a broken-image icon.
  */
