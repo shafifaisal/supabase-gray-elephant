@@ -664,7 +664,7 @@ against the database) but the public site never changed.
 | `npm test` | **295/295** (was 275; +20 new: identity, maintenance, proxy gate) |
 | `npm run build` | pass, 32 pages; `/`, `/about`, `/contact`, `/privacy-policy`, `/terms`, `/cookie-policy` still `○ (Static)` |
 | `next start` route check | `/`, `/contact`, `/about`, `/privacy-policy`, `/terms`, `/cookie-policy`, `/articles`, `/tools`, `/api/analytics/config` all 200 |
-| baked-HTML check | DB tagline in the footer blurb; DB contact email on the contact page, the legal pages and in JSON-LD; brand name in the privacy/terms/about/cookie body; `/api/analytics/config` returns `{"enabled":true,"measurementId":"G-F821LK82PY",…}` |
+| baked-HTML check | DB tagline in the footer blurb; DB contact email on the contact page, the legal pages and in JSON-LD; brand name in the privacy/terms/about/cookie body; `/api/analytics/config` returns `{"enabled":true,"measurementId":"G-…",…}` |
 | proxy test | maintenance ON ⇒ public navigation 503, `/admin` and `/api` never 503, read failure ⇒ still 200 |
 
 **Known limitations — recorded, not hidden**
@@ -681,14 +681,16 @@ against the database) but the public site never changed.
 
 ## GA measurement ID bundled as a default (2026-10-13)
 
-**Request.** The owner supplied the standard gtag.js snippet for
-`G-F821LK82PY` and asked that it replace the current analytics code. The chosen
-approach (confirmed with the owner) keeps the consent gate and embeds the ID, so
-GA fires without needing a Vercel environment variable.
+**Request.** The owner supplied the standard gtag.js snippet for a GA4
+measurement ID (since retired — see the replacement entry below) and asked that
+it replace the current analytics code. The chosen approach (confirmed with the
+owner) keeps the consent gate and embeds the ID, so GA fires without needing a
+Vercel environment variable.
 
 **Change** (`src/lib/analytics/config.ts`)
-- Added `DEFAULT_GA_MEASUREMENT_ID = "G-F821LK82PY"` — the owner's own public
-  GA4 ID, not a placeholder. `gaMeasurementId()` now uses
+- Added `DEFAULT_GA_MEASUREMENT_ID` — the owner's own public GA4 ID, not a
+  placeholder (the value was later replaced; the retired ID is intentionally not
+  reproduced here). `gaMeasurementId()` now uses
   `NEXT_PUBLIC_GA_MEASUREMENT_ID` when set, otherwise the bundled default; an
   explicitly configured but malformed value still fails closed (returns null).
 - The consent gate is unchanged: gtag.js is still injected only after the
@@ -705,7 +707,7 @@ GA fires without needing a Vercel environment variable.
 | `npm run lint` | pass, 0 errors/warnings |
 | `npm run typecheck` | pass |
 | `npm test` | **297/297** (was 295; +2: bundled-default fallback, malformed-config fail-closed) |
-| runtime | `GET /api/analytics/config` → `{"enabled":true,"measurementId":"G-F821LK82PY","consentRequired":true}` |
+| runtime | `GET /api/analytics/config` → `{"enabled":true,"measurementId":"G-…","consentRequired":true}` |
 
 **Note.** The fallback path (no env var) is covered by unit tests; the local dev
 server reads `.env.local`, which already sets the same value, so the runtime
@@ -714,9 +716,9 @@ override the bundled default.
 
 ## GA measurement ID replaced (2026-10-16)
 
-**Request.** The owner deleted the GA4 property holding `G-F821LK82PY`, created a
-new property, and supplied the standard gtag.js snippet for the replacement ID
-`G-FM1QKB6H5P`.
+**Request.** The owner deleted the GA4 property holding the previously bundled ID
+(since retired), created a new property, and supplied the standard gtag.js
+snippet for the replacement ID `G-FM1QKB6H5P`.
 
 **Change** (`src/lib/analytics/config.ts`)
 - `DEFAULT_GA_MEASUREMENT_ID` updated to `G-FM1QKB6H5P`. This is the only
@@ -748,11 +750,15 @@ re-checked after this change, because it still reflects the previous deployment
 until this commit is pushed and Vercel redeploys.
 
 **Risk — Vercel environment override.** `gaMeasurementId()` prefers
-`NEXT_PUBLIC_GA_MEASUREMENT_ID` over the bundled default. If that variable is
-still set to `G-F821LK82PY` in the Vercel project, production will keep sending
-hits to the deleted property and the bundled default will be ignored. Check
-Vercel → Settings → Environment Variables, and either update it to
-`G-FM1QKB6H5P` or remove it so the bundled default applies.
+`NEXT_PUBLIC_GA_MEASUREMENT_ID` over the bundled default. If that variable were
+still pinned to the retired ID in the Vercel project, production would keep
+sending hits to the deleted property and the bundled default would be ignored.
+
+**Resolved (verified 2026-10-21).** Production was re-checked against the live
+deployment: `GET https://ipassgenerator.online/api/analytics/config` returns
+`{"enabled":true,"measurementId":"G-FM1QKB6H5P","consentRequired":true}`. The
+retired ID is not in use; the Vercel variable is either unset or set to the
+current ID. No further action needed unless the ID changes again.
 
 **Note.** GA4 property deletion resets all historical reporting, so the new
 property starts with no data. Realtime will also undercount for as long as the
